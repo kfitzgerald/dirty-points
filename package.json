@@ -1,6 +1,6 @@
 {
   "name": "dirty-points",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
@@ -56,7 +56,9 @@
   "homepage": "https://points.dirtybriefs.net",
   "devDependencies": {
     "bootstrap-icons": "^1.11.3",
+    "clipboard": "^2.0.11",
     "formik": "^2.4.6",
+    "prop-types": "^15.8.1",
     "react-beautiful-dnd": "^13.1.1",
     "react-dropzone": "^14.2.3",
     "react-loading-skeleton": "^3.4.0",

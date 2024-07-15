@@ -1,4 +1,4 @@
-import {useCallback, useEffect} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import './RedeemList.scss';
 import {Accordion, Badge, Button, Container, Nav, Navbar, NavDropdown, Tab, Tabs} from "react-bootstrap";
@@ -26,6 +26,7 @@ import {importSettings} from "../app/AppActions";
 import OBSSceneCycleView from "../obs/OBSSceneCycleView";
 import { ReactComponent as PauseIcon } from "../pause-circle-fill.svg"
 import { ReactComponent as PlayIcon } from "../play-circle-fill.svg"
+import ExportModal from "./ExportModal";
 
 export default function RedeemList() {
     const dispatch = useDispatch();
@@ -33,6 +34,7 @@ export default function RedeemList() {
     const userCache = useSelector(state => state.users.cache);
     const obs = useSelector(state => state.obs);
     const redemptions = useSelector(state => state.redemptions);
+    const [ showExportModal, setShowExportModal ] = useState(false);
     const {getRootProps, getInputProps, open} = useDropzone({
         // Disable click and keydown behavior
         noClick: true,
@@ -87,33 +89,15 @@ export default function RedeemList() {
         dispatch(revokeToken());
     }, [dispatch]);
 
-    const handleExportSettings = useCallback((e) => {
+    const handleCloseExportModal = useCallback(() => {
+        setShowExportModal(false);
+    }, []);
+
+    const handleShowExportModal = useCallback((e) => {
         e.preventDefault();
         e.stopPropagation();
-        const payload = {
-            obs: {
-                host: obs.host,
-                port: obs.port,
-                password: obs.password,
-                cycleGroups: obs.cycleGroups
-            },
-            mappings: redemptions.mappings
-        };
-
-        const blob = new window.Blob([JSON.stringify(payload, null, 2)], {
-            type: 'application/json'
-        });
-        const file = URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = file;
-        a.download = 'dirty-points.json';
-        e.target.parentNode.appendChild(a);
-        a.click();
-        a.remove();
-        document.body.click();
-
-    }, [obs, redemptions]);
+        setShowExportModal(true);
+    }, []);
 
     const handleImportSettings = useCallback((e) => {
         e.preventDefault();
@@ -187,7 +171,7 @@ export default function RedeemList() {
                             </div>
                             <NavDropdown title={<><img src={userCache[user_id]?.profile_image_url || twitchLogo} alt="" /> {userCache[user_id]?.display_name || login}</>} id="user-dropdown" align="end">
                                 <NavDropdown.Item onClick={handleImportSettings}>Import settings</NavDropdown.Item>
-                                <NavDropdown.Item onClick={handleExportSettings}>Export settings</NavDropdown.Item >
+                                <NavDropdown.Item onClick={handleShowExportModal}>Export settings</NavDropdown.Item >
                                 <NavDropdown.Divider />
                                 <NavDropdown.Item onClick={handleSignOut}>Sign out</NavDropdown.Item>
                             </NavDropdown>
@@ -260,11 +244,11 @@ export default function RedeemList() {
 
                     <Tab.Pane eventKey="rotation">
                         <OBSSceneCycleView />
-
                     </Tab.Pane>
 
                 </Tab.Content>
             </Tab.Container>
+            <ExportModal show={showExportModal} onClose={handleCloseExportModal} />
         </div>
     );
 }

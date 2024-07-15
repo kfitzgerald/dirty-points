@@ -21,6 +21,7 @@ import {
     UPDATE_TWITCH_ERROR
 } from "./RedemptionActions";
 import {IMPORT_SETTINGS} from "../app/AppActions";
+import {OBS_SCENE_ITEM_REMOVED, OBS_SCENE_NAME_CHANGED} from "../obs/OBSActions";
 
 export const initialState = {
 
@@ -193,7 +194,7 @@ export default function RedemptionReducer(state = initialState, action) {
             return {
                 ...state,
                 mappings,
-                chatMappings: Object.entries(mappings).filter(e => !!e[1].chatCommand)
+                chatMappings: Object.entries(mappings).filter(e => !!e[1]?.chatCommand)
             };
         }
 
@@ -260,6 +261,76 @@ export default function RedemptionReducer(state = initialState, action) {
                 isDeleting: false,
                 lastUpdateError: action.error
             };
+
+        //endregion
+
+        //region OBS Events
+
+        case OBS_SCENE_NAME_CHANGED: {
+
+            // Update any old scene name references in the mappings
+            const mappings = Object.fromEntries(Object.entries(state.mappings)
+                .map(([key, value]) => {
+                    const secondaryItems = (value.secondaryItems || []).map(item => {
+                        return {
+                            ...item,
+                            sceneName: (item.sceneName === action.oldSceneName) ? action.sceneName : item.sceneName,
+                        }
+                    });
+                    return [
+                        key,
+                        {
+                            ...value,
+                            sceneName: (value.sceneName === action.oldSceneName) ? action.sceneName : value.sceneName,
+                            timeoutScene: (value.timeoutScene === action.oldSceneName) ? action.sceneName : value.timeoutScene,
+                            secondaryItems
+                        }
+                    ];
+                })
+            );
+
+            // Regenerate the chat mappings
+            const chatMappings = Object.entries(mappings).filter(e => !!e[1].chatCommand)
+            return {
+                ...state,
+
+                // Update reward mappings
+                mappings,
+                chatMappings
+            };
+        }
+
+        case OBS_SCENE_ITEM_REMOVED: {
+            // Remove any references to the deleted scene item
+            const mappings = Object.fromEntries(Object.entries(state.mappings)
+                .map(([key, value]) => {
+                    const secondaryItems = (value.secondaryItems || []).map(item => {
+                        return {
+                            ...item,
+                            sceneItems: item.sceneItems.filter(sceneItemId => sceneItemId !== action.sceneItemId && item.sceneName === action.sceneName)
+                        }
+                    });
+                    return [
+                        key,
+                        {
+                            ...value,
+                            sceneItems: value.sceneItems.filter(sceneItemId => sceneItemId !== action.sceneItemId && value.sceneName === action.sceneName),
+                            secondaryItems
+                        }
+                    ];
+                })
+            );
+
+            // Regenerate the chat mappings
+            const chatMappings = Object.entries(mappings).filter(e => !!e[1].chatCommand)
+            return {
+                ...state,
+
+                // Update reward mappings
+                mappings,
+                chatMappings
+            };
+        }
 
         //endregion
 

@@ -4,6 +4,11 @@ import {
     DELETE_SCENE_CYCLE_GROUP,
     DELETE_SCENE_CYCLE_GROUP_ITEM,
     OBS_CONNECTION_STATUS,
+    OBS_SCENE_CREATED,
+    OBS_SCENE_ITEM_CREATED, OBS_SCENE_ITEM_REMOVED,
+    OBS_SCENE_LIST_CHANGED,
+    OBS_SCENE_NAME_CHANGED,
+    OBS_SCENE_REMOVED,
     REORDER_SCENE_CYCLE_GROUP_ITEM,
     SET_ACTIVE_SCENE_INDEX,
     SET_SCENE_CYCLE_PAUSED,
@@ -70,10 +75,44 @@ export default function OBSReducer(state = initialState, action) {
                 lastError: action.error
             };
 
+        // OBS_SCENE_LIST_CHANGED will fire for these events
+        case OBS_SCENE_CREATED:
+        case OBS_SCENE_REMOVED:
+            return state;
+
+        // Scene items added/removed
+        case OBS_SCENE_ITEM_CREATED:
+        case OBS_SCENE_ITEM_REMOVED:
+            return state;
+
+
+        // OBS_SCENE_LIST_CHANGED also fires for these too
+        case OBS_SCENE_NAME_CHANGED: {
+            return {
+                ...state,
+
+                // Update scene name cycle mappings
+                cycleGroups: [
+                    ...state.cycleGroups.map(group => {
+                        return {
+                            ...group,
+                            scenes: group.scenes.map(scene => {
+                                return {
+                                    ...scene,
+                                    sceneName: (scene.sceneName === action.oldSceneName) ? action.sceneName : scene.sceneName
+                                };
+                            })
+                        };
+                    })
+                ]
+            }
+        }
+
         //endregion
 
         //region Scene & Items state
 
+        case OBS_SCENE_LIST_CHANGED:
         case UPDATE_OBS_SCENE_LIST:
             return {
                 ...state,

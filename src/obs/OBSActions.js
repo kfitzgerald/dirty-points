@@ -69,8 +69,67 @@ export function connectToOBS() {
                 }));
             }
 
+            function onSceneNameChanged(event) {
+                dispatch(OBSSceneNameChanged({
+                    sceneUuid: event.sceneUuid,
+                    oldSceneName: event.oldSceneName,
+                    sceneName: event.sceneName
+                }));
+            }
+
+            function onSceneCreaated(event) {
+                dispatch(OBSSceneCreated({
+                    sceneUuid: event.sceneUuid,
+                    sceneName: event.sceneName,
+                    isGroup: event.isGroup,
+                }));
+            }
+
+            function onSceneRemoved(event) {
+                dispatch(OBSSceneRemoved({
+                    sceneUuid: event.sceneUuid,
+                    sceneName: event.sceneName,
+                    isGroup: event.isGroup,
+                }));
+            }
+
+            function onSceneListChanged(event) {
+                dispatch(OBSSceneListChanged({
+                    scenes: event.scenes
+                }));
+            }
+
+            function onSceneItemCreated(event) {
+                // Notify created
+                dispatch(OBSSceneItemCreated(event));
+
+                // Refresh item list
+                dispatch(fetchSceneItemList(event.sceneName));
+            }
+
+            function onSceneItemRemoved(event) {
+                // Notify removed
+                dispatch(OBSSceneItemRemoved(event));
+
+                // Refresh item list
+                dispatch(fetchSceneItemList(event.sceneName));
+            }
+
+            function onSceneItemListReindexed(event) {
+                dispatch(fetchSceneItemList(event.sceneName)); // Only handle refresh for reordering
+            }
+
+            // Events
             obsWebSocket.on('CurrentProgramSceneChanged', onCurrentProgramSceneChanged);
             obsWebSocket.on('CurrentPreviewSceneChanged', onCurrentPreviewSceneChanged);
+            obsWebSocket.on('SceneNameChanged', onSceneNameChanged);
+            obsWebSocket.on('SceneCreated', onSceneCreaated);
+            obsWebSocket.on('SceneRemoved', onSceneRemoved);
+            obsWebSocket.on('SceneListChanged', onSceneListChanged);
+            obsWebSocket.on('SceneItemCreated', onSceneItemCreated);
+            obsWebSocket.on('SceneItemRemoved', onSceneItemRemoved);
+            obsWebSocket.on('SceneItemListReindexed', onSceneItemListReindexed);
+
             obsWebSocket.once('ExitStarted', () => {
                 console.info('OBS started shutdown');
                 obsWebSocket.off('CurrentProgramSceneChanged', onCurrentProgramSceneChanged);
@@ -245,6 +304,79 @@ export function setScene(sceneName) {
             console.error('Failed to set scene', { sceneName, err });
             dispatch(updateOBSError(err));
         }
+    };
+}
+
+
+export const OBS_SCENE_NAME_CHANGED = 'OBS_SCENE_NAME_CHANGED';
+export function OBSSceneNameChanged({ sceneUuid, oldSceneName, sceneName }) {
+    return {
+        type: OBS_SCENE_NAME_CHANGED,
+        sceneUuid,
+        oldSceneName,
+        sceneName
+    };
+}
+
+export const OBS_SCENE_REMOVED = 'OBS_SCENE_REMOVED';
+export function OBSSceneRemoved({ sceneUuid, sceneName, isGroup }) {
+    return {
+        type: OBS_SCENE_REMOVED,
+        sceneUuid,
+        sceneName,
+        isGroup,
+    };
+}
+
+export const OBS_SCENE_CREATED = 'OBS_SCENE_CREATED';
+export function OBSSceneCreated({ sceneUuid, sceneName, isGroup }) {
+    return {
+        type: OBS_SCENE_CREATED,
+        sceneUuid,
+        sceneName,
+        isGroup,
+    };
+}
+
+export const OBS_SCENE_LIST_CHANGED = 'OBS_SCENE_LIST_CHANGED';
+export function OBSSceneListChanged({ scenes }) {
+    return {
+        type: OBS_SCENE_LIST_CHANGED,
+        scenes
+    };
+}
+
+export const OBS_SCENE_ITEM_CREATED = 'OBS_SCENE_ITEM_CREATED';
+export function OBSSceneItemCreated({ sceneName,
+                                        sceneUuid,
+                                        sourceName,
+                                        sourceUuid,
+                                        sceneItemId,
+                                        sceneItemIndex }) {
+    return {
+        type: OBS_SCENE_ITEM_CREATED,
+        sceneName,
+        sceneUuid,
+        sourceName,
+        sourceUuid,
+        sceneItemId,
+        sceneItemIndex
+    };
+}
+
+export const OBS_SCENE_ITEM_REMOVED = 'OBS_SCENE_ITEM_REMOVED';
+export function OBSSceneItemRemoved({ sceneName,
+                                        sceneUuid,
+                                        sourceName,
+                                        sourceUuid,
+                                        sceneItemId }) {
+    return {
+        type: OBS_SCENE_ITEM_REMOVED,
+        sceneName,
+        sceneUuid,
+        sourceName,
+        sourceUuid,
+        sceneItemId,
     };
 }
 

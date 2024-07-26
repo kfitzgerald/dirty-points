@@ -103,7 +103,7 @@ export default function RewardsTable({ showOther=false }) {
                                 </td>
                             </tr>
                         ) : (
-                            rewards.map((reward, i) => (
+                            rewards.sort((a, b) => a.title.localeCompare(b.title)).map((reward, i) => (
                                 <tr key={i}>
                                     <td className="pe-0"><Form.Check type="switch"
                                                     checked={reward.is_enabled}

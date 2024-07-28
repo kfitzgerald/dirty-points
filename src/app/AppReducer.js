@@ -1,4 +1,4 @@
-import {APP_CRASH, SET_PREFERENCE} from "./AppActions";
+import {APP_CRASH, SET_FULL_STOP_ENABLED, SET_PREFERENCE} from "./AppActions";
 
 import {DEFAULT_PREFERENCES} from "../common/Constants";
 
@@ -7,7 +7,8 @@ export const initialState = {
     appCrashed: false,
     preferences: {
         ...DEFAULT_PREFERENCES,
-    }
+    },
+    fullStop: false
 };
 
 export default function AppReducer(state = initialState, action) {
@@ -29,6 +30,12 @@ export default function AppReducer(state = initialState, action) {
                     ...state.preferences,
                     [action.key]: action.value
                 }
+            };
+
+        case SET_FULL_STOP_ENABLED:
+            return {
+                ...state,
+                fullStop: action.enabled
             };
 
         default:

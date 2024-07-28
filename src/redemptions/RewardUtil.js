@@ -5,6 +5,7 @@ export function convertStringMapping(mapping) {
         timeout: 0,
         timeoutScene: '',
         chatCommand: '',
+        chatCommandBadges: [],
         secondaryItems: []
     }
 }
@@ -16,6 +17,7 @@ export function getEmptyMapping() {
         timeout: 0,
         timeoutScene: '',
         chatCommand: '',
+        chatCommandBadges: [],
         secondaryItems: []
     }
 }

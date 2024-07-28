@@ -26,3 +26,11 @@ export function importSettings(data) {
     };
 }
 
+export const SET_FULL_STOP_ENABLED = 'SET_FULL_STOP_ENABLED';
+export function setFullStopEnabled(enabled) {
+    return {
+        type: SET_FULL_STOP_ENABLED,
+        enabled
+    };
+}
+

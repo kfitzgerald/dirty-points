@@ -22,18 +22,24 @@ import OBSSettings from "../obs/OBSSettings";
 import RewardsTable from "./RewardsTable";
 import CreateRewardButton from "./CreateRewardButton";
 import {useDropzone} from "react-dropzone";
-import {importSettings} from "../app/AppActions";
+import {importSettings, setFullStopEnabled} from "../app/AppActions";
 import OBSSceneCycleView from "../obs/OBSSceneCycleView";
+import { ReactComponent as StopIcon } from "../sign-stop.svg"
+import { ReactComponent as StopIconFilled } from "../sign-stop-fill.svg"
 import { ReactComponent as PauseIcon } from "../pause-circle-fill.svg"
-import { ReactComponent as PlayIcon } from "../play-circle-fill.svg"
+// import { ReactComponent as PlayIcon } from "../play-circle-fill.svg"
+import { ReactComponent as PlayIcon } from "../arrow-repeat.svg"
 import ExportModal from "./ExportModal";
 
 export default function RedeemList() {
     const dispatch = useDispatch();
-    const session = useSelector(state => state.session);
-    const userCache = useSelector(state => state.users.cache);
-    const obs = useSelector(state => state.obs);
-    const redemptions = useSelector(state => state.redemptions);
+    const [session, userCache, obs, redemptions, fullStop ] = useSelector(state => [
+        state.session,
+        state.users.cache,
+        state.obs,
+        state.redemptions,
+        state.app.fullStop,
+    ]);
     const [ showExportModal, setShowExportModal ] = useState(false);
     const {getRootProps, getInputProps, open} = useDropzone({
         // Disable click and keydown behavior
@@ -123,8 +129,18 @@ export default function RedeemList() {
             dispatch(stopSceneCycle());
         } else if (obs.activeCycle && !obs.cycleEnabled) {
             dispatch(startSceneCycle());
+            if (fullStop) {
+                dispatch(setFullStopEnabled(false));
+            }
         }
-    }, [dispatch, obs])
+    }, [dispatch, obs, fullStop]);
+
+    const handleFullStopToggle = useCallback(async () => {
+        dispatch(setFullStopEnabled(!fullStop));
+        if (obs.activeCycle && obs.cycleEnabled && (!fullStop)) {
+            dispatch(stopSceneCycle());
+        }
+    }, [dispatch, fullStop, obs]);
 
     const getStatusButton = () => {
         let Icon = PauseIcon;
@@ -137,6 +153,20 @@ export default function RedeemList() {
                     (obs.activeCycle && obs.cycleEnabled && obs.cyclePaused) ? 'fill-warning' :
                         (obs.activeCycle && obs.cycleEnabled && !obs.cyclePaused) ? 'fill-info' :
                             (obs.activeCycle && !obs.cycleEnabled) ? 'fill-primary' : 'fill-secondary'
+                } />
+            </Button>
+        );
+    }
+
+    const getFullStopButton = () => {
+        let Icon = StopIcon;
+        if (fullStop) {
+            Icon = StopIconFilled;
+        }
+        return (
+            <Button variant="link" className="fs-3 p-0 fs-6" onClick={handleFullStopToggle} title="Full stop - No redeems or cycling">
+                <Icon className={
+                    (fullStop) ? 'fill-danger' : 'fill-secondary'
                 } />
             </Button>
         );
@@ -159,6 +189,7 @@ export default function RedeemList() {
                         <Navbar.Toggle />
                         <Navbar.Collapse className="justify-content-end">
                             <div className="service-status">
+                                {getFullStopButton()}
                                 {getStatusButton()}
                                 <div>
                                 <img src={obsLogo} alt="Twitch" title={obs.status} />

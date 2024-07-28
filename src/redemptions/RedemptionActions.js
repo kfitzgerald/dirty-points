@@ -69,14 +69,25 @@ export function connectToTwitch() {
         twitchSocket.onChannelChatMessage(broadcaster_user_id, broadcaster_user_id, event => {
             const {chatMappings, rewards, manageableRewards } = getState().redemptions;
             const message = event.messageText.trim().toLowerCase();
-            console.log('chat message', { event, message, chatMappings } );
+            console.log('chat message', { event, message, chatMappings, badges: Object.keys(event.badges) } );
             chatMappings
                 .filter(([rewardId, mapping]) => {
                     const reward = manageableRewards.find(r => r.id === rewardId) || rewards.find(r => r.id === rewardId);
                     return reward && reward.is_enabled && message.startsWith(mapping.chatCommand);
                 })
-                .forEach(([rewardId]) => {
-                    dispatch(executeReward(rewardId));
+                .forEach(([rewardId, mapping]) => {
+                    let allowed = true;
+                    if (mapping.chatCommandBadges?.length > 0) {
+                        // limit to messages with attached badges
+                        const messageBadges = Object.keys(event.badges);
+                        const hasRequiredBadge = mapping.chatCommandBadges.find(badgeName => messageBadges.includes(badgeName));
+                        allowed = !!hasRequiredBadge;
+                    }
+                    if (allowed) {
+                        dispatch(executeReward(rewardId));
+                    } else {
+                        console.log('Required badge not present, not executing redemption');
+                    }
                 })
             ;
         });
@@ -201,8 +212,13 @@ export function getNextQueuedSourceReward() {
 
 export function executeReward(rewardId) {
     return async (dispatch, getState) => {
-        const {redemptions} = getState();
+        const {redemptions, app} = getState();
         const {mappings} = redemptions;
+
+        if (app.fullStop) {
+            console.info(`executeReward: Full stop - no redeems happening right now`);
+            return;
+        }
 
         let mapping = mappings[rewardId];
         if (!mapping) {

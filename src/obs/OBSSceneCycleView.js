@@ -21,6 +21,7 @@ import {
 } from "./OBSActions";
 import {DragDropContext} from "react-beautiful-dnd";
 import SceneGroupDroppable from "./SceneGroupDroppable";
+import {setFullStopEnabled} from "../app/AppActions";
 
 export function getEmptySceneItem() {
     return {
@@ -33,7 +34,7 @@ export function getEmptySceneItem() {
 
 export default function OBSSceneCycleView() {
     const dispatch = useDispatch();
-    const obs = useSelector(state => state.obs);
+    const [obs, fullStop] = useSelector(state => [state.obs, state.app.fullStop]);
     const [accordionKey, setAccordionKey] = useState(null);
 
     const { cycleGroups, activeCycle, cycleEnabled } = obs;
@@ -91,7 +92,11 @@ export default function OBSSceneCycleView() {
         // play
         dispatch(startSceneCycle(group));
 
-    }, [ dispatch, activeCycle, cycleEnabled ]);
+        if (fullStop) {
+            dispatch(setFullStopEnabled(false));
+        }
+
+    }, [ dispatch, activeCycle, cycleEnabled, fullStop ]);
 
     const formik = useFormik({
         initialValues: {

@@ -5,6 +5,7 @@ import Select from 'react-select';
 import {deleteRedemptionMapping, setRedemptionMapping} from "../redemptions/RedemptionActions";
 import {convertStringMapping, getEmptyMapping} from "../redemptions/RewardUtil";
 import {OBSSceneItemsPicker} from "./OBSSceneItemsPicker";
+import {CHAT_BADGES} from "../common/Constants";
 
 export default function OBSMappingModal({ show, onClose, reward=null }) {
     const dispatch = useDispatch();
@@ -43,6 +44,13 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
         dispatch(setRedemptionMapping(reward.id, {
             ...mapping,
             sceneItems: value.map(o => o.value)
+        }));
+    }, [dispatch, reward, mapping]);
+
+    const handleUpdateChatCommandBadges = useCallback((value) => {
+        dispatch(setRedemptionMapping(reward.id, {
+            ...mapping,
+            chatCommandBadges: value.map(o => o.value)
         }));
     }, [dispatch, reward, mapping]);
 
@@ -87,6 +95,13 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
             chatCommand: e.target.value.trim() || null
         }));
     }, [dispatch, reward, mapping]);
+
+    const chatBadgeOptions = Array.from(Object.entries(CHAT_BADGES)).map(([key, value]) => {
+        return {
+            value: value,
+            label: key
+        };
+    });
 
     const sceneOptions = obs.scenes.sort((a, b) => b.sceneIndex - a.sceneIndex).map((scene) => {
         return {
@@ -217,19 +232,38 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
                                 />
                             </Form.Group>
                         </Row>
-                        <Form.Group controlId="chatCommand" className="mb-3">
-                            <Form.Label className="fw-semibold">Chat Command / Text</Form.Label>
-                            <Form.Control
-                                name="prompt"
-                                value={mapping.chatCommand}
-                                style={{
-                                    padding: '.75rem'
-                                }}
-                                placeholder={"e.g. !decks"}
-                                onChange={handleUpdateChatCommand}
-                                type="text"
-                            />
-                        </Form.Group>
+                        <Row>
+                            <Form.Group as={Col} controlId="chatCommand" className="mb-3">
+                                <Form.Label className="fw-semibold">Chat Command / Text</Form.Label>
+                                <Form.Control
+                                    name="prompt"
+                                    value={mapping.chatCommand}
+                                    style={{
+                                        padding: '.75rem'
+                                    }}
+                                    placeholder={"e.g. !lineup"}
+                                    onChange={handleUpdateChatCommand}
+                                    type="text"
+                                />
+                            </Form.Group>
+                            <Form.Group as={Col} controlId="chatCommandBadges" className="mb-3">
+                                <Form.Label className="fw-semibold">Limit Command to</Form.Label>
+                                <Select
+                                    name="chatCommandBadges"
+                                    classNamePrefix="react-select"
+                                    isMulti={true}
+                                    unstyled={true}
+                                    classNames={{
+                                        container: () => `form-control`,
+                                        option: () => 'dropdown-item',
+                                        menuList: () => 'dropdown-menu show'
+                                    }}
+                                    options={chatBadgeOptions}
+                                    value={chatBadgeOptions.filter(o => (mapping.chatCommandBadges || []).includes(o.value))}
+                                    onChange={handleUpdateChatCommandBadges}
+                                />
+                            </Form.Group>
+                        </Row>
 
                     </Modal.Body>
                     <Modal.Footer>

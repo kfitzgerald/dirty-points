@@ -213,6 +213,11 @@ Added export modal since OBS browser docks cannot download files
 Initial working build, months of unfinished work previous to this 🤣
 
 
+# Contributing
+
+Have some ideas, feedback, or want to add some features? Hit me up on Discord, open an issue, or fire a PR this way!
+
+
 # Toolchain
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

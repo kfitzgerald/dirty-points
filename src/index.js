@@ -9,6 +9,14 @@ import {RedemptionQueueContext} from "./redemptions/RedemptionQueueContext";
 import {SceneQueue} from "./redemptions/SceneQueue";
 import {SourceQueue} from "./redemptions/SourceQueue";
 import SceneCycleController from "./obs/SceneCycleController";
+import * as Sentry from "@sentry/react";
+
+// Report errors in production only
+if (process.env.NODE_ENV && process.env.NODE_ENV !== 'development') {
+    Sentry.init({
+        dsn: process.env.REACT_APP_SENTRY_DSN,
+    });
+}
 
 // Setup Redux
 const preloadedState = undefined;

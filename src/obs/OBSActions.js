@@ -1,4 +1,5 @@
 import OBSWebSocket from "obs-websocket-js";
+import {setFullStopEnabled} from "../app/AppActions";
 
 //region Websocket
 
@@ -77,7 +78,7 @@ export function connectToOBS() {
                 }));
             }
 
-            function onSceneCreaated(event) {
+            function onSceneCreated(event) {
                 dispatch(OBSSceneCreated({
                     sceneUuid: event.sceneUuid,
                     sceneName: event.sceneName,
@@ -115,20 +116,25 @@ export function connectToOBS() {
                 dispatch(fetchSceneItemList(event.sceneName));
             }
 
-            function onSceneItemListReindexed(event) {
+            function onSceneItemListReIndexed(event) {
                 dispatch(fetchSceneItemList(event.sceneName)); // Only handle refresh for reordering
+            }
+
+            function onStudioModeStateChanged(event) {
+                dispatch(setFullStopEnabled(event.studioModeEnabled)); // Full stop on studio mode
             }
 
             // Events
             obsWebSocket.on('CurrentProgramSceneChanged', onCurrentProgramSceneChanged);
             obsWebSocket.on('CurrentPreviewSceneChanged', onCurrentPreviewSceneChanged);
             obsWebSocket.on('SceneNameChanged', onSceneNameChanged);
-            obsWebSocket.on('SceneCreated', onSceneCreaated);
+            obsWebSocket.on('SceneCreated', onSceneCreated);
             obsWebSocket.on('SceneRemoved', onSceneRemoved);
             obsWebSocket.on('SceneListChanged', onSceneListChanged);
             obsWebSocket.on('SceneItemCreated', onSceneItemCreated);
             obsWebSocket.on('SceneItemRemoved', onSceneItemRemoved);
-            obsWebSocket.on('SceneItemListReindexed', onSceneItemListReindexed);
+            obsWebSocket.on('SceneItemListReindexed', onSceneItemListReIndexed);
+            obsWebSocket.on('StudioModeStateChanged', onStudioModeStateChanged);
 
             obsWebSocket.once('ExitStarted', () => {
                 console.info('OBS started shutdown');

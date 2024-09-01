@@ -192,6 +192,9 @@ That's it. Really basic!
 
 # Changelog
 
+### v1.2.0 - 2024-09-01
+- OBS studio mode state now synchronized on websocket connect
+
 ### v1.1.0 - 2024-09-01
 - OBS studio mode now toggles full-stop (use studio mode to pause cycle, unintended scene changes)
 

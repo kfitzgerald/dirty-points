@@ -208,8 +208,35 @@ export function fetchSceneList() {
             // Refresh scene items
             await dispatch(fetchAllSceneItems());
 
+            // Sync studio mode state
+            await dispatch(syncStudioMode());
+
         } catch (err) {
             console.error('Failed to get the scene list');
+            dispatch(updateOBSError(err));
+        }
+
+    };
+}
+
+export function syncStudioMode() {
+    return async (dispatch, getState) => {
+        const {obs} = getState();
+        const {status} = obs;
+
+        // Not connected, do nothing
+        if (status !== OBS_CONNECTION_STATUS.connected) return;
+
+        try {
+            const {
+                studioModeEnabled
+            } = await obsWebSocket.call('GetStudioModeEnabled');
+
+            // Sync full stop to studio mode state
+            dispatch(setFullStopEnabled(studioModeEnabled)); // Full stop on studio mode
+
+        } catch (err) {
+            console.error('Failed to get studio mode state');
             dispatch(updateOBSError(err));
         }
 

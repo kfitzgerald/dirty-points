@@ -55,6 +55,7 @@ When correctly configured, both OBS and Twitch should have a green status icon a
 
 1. **Navigation Tabs**, switch between twitch reward mapping and scene cycle views
 2. **Full Stop**, when enabled, no rewards or scene cycling will happen
+   > Note: Toggling OBS studio mode will automatically toggle full-stop mode. Use this to quickly pause scene changes and redemptions, even from a stream deck!
 3. **Cycle toggle**, will start/pause the last activated scene cycle group
 4. **Status Icons**, shows the connection status of OBS and Twitch
 5. **Session Dropdown**, import/export settings and sign out of the app
@@ -190,6 +191,9 @@ That's it. Really basic!
 
 
 # Changelog
+
+### v1.1.0 - 2024-09-01
+- OBS studio mode now toggles full-stop (use studio mode to pause cycle, unintended scene changes)
 
 ### v1.0.0 - 2024-07-28
 Initial public release with documentation! 🎉

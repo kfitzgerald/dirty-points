@@ -8,7 +8,7 @@ import {
     Row,
     useAccordionButton
 } from "react-bootstrap";
-import {useDispatch, useSelector} from "react-redux";
+import {shallowEqual, useDispatch, useSelector} from "react-redux";
 import {useCallback, useState} from "react";
 import * as Yup from "yup";
 import {useFormik} from "formik";
@@ -34,7 +34,7 @@ export function getEmptySceneItem() {
 
 export default function OBSSceneCycleView() {
     const dispatch = useDispatch();
-    const [obs, fullStop] = useSelector(state => [state.obs, state.app.fullStop]);
+    const [obs, fullStop] = useSelector(state => [state.obs, state.app.fullStop], shallowEqual);
     const [accordionKey, setAccordionKey] = useState(null);
 
     const { cycleGroups, activeCycle, cycleEnabled } = obs;
@@ -148,7 +148,7 @@ export default function OBSSceneCycleView() {
                     </Form.Group>
                     <Col xs={4}>
                         <Form.Label className="fw-semibold w-100">&nbsp;</Form.Label>
-                        <Button type="submit"><i className="bi bi-plus-circle"></i> Create Group</Button>
+                        <Button type="submit"><i className="bi bi-plus-circle"/> Create Group</Button>
                     </Col>
                 </Row>
             </Form>
@@ -165,9 +165,9 @@ export default function OBSSceneCycleView() {
                             <div className={"custom-accordion-header d-flex"+(accordionKey === i ? '' : ' collapsed')}>
                                 <Button variant="link" className="ps-3 pe-3" onClick={() => handleGroupPlayPauseClick(group)}>
                                     {(obs.activeCycle === group && obs.cycleEnabled) ? (
-                                        <i className="bi bi-pause-circle-fill text-info fs-4"></i>
+                                        <i className="bi bi-pause-circle-fill text-info fs-4"/>
                                     ) : (
-                                        <i className="bi bi-play-circle text-success fs-4"></i>
+                                        <i className="bi bi-play-circle text-success fs-4"/>
                                     )}
                                 </Button>
                                 {/*<Button variant="link" className="ps-3 pe-3"><i className="bi bi-pause-circle-fill text-info fs-4"></i></Button>*/}
@@ -180,8 +180,8 @@ export default function OBSSceneCycleView() {
                                     </DragDropContext>
                                     <div className="d-flex justify-content-between align-items-center mt-3">
                                         <div>
-                                        <Button onClick={() => handleAddNewScene(group)}><i className="bi bi-plus-circle"></i> <span className="d-none d-sm-inline">Add Scene</span></Button>
-                                        <Button variant="secondary" className="ms-3" onClick={() => handleRenameSceneGroup(group)}><i className="bi bi-pencil-fill"></i></Button>
+                                        <Button onClick={() => handleAddNewScene(group)}><i className="bi bi-plus-circle"/> <span className="d-none d-sm-inline">Add Scene</span></Button>
+                                        <Button variant="secondary" className="ms-3" onClick={() => handleRenameSceneGroup(group)}><i className="bi bi-pencil-fill"/></Button>
                                         <Button variant="danger" className="ms-3" onClick={() => handleDeleteGroup(group)}><i
                                             className="bi bi-trash3-fill"/></Button>
                                         </div>

@@ -1,6 +1,6 @@
 {
   "name": "dirty-points",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "private": true,
   "dependencies": {
     "@sentry/react": "^8.20.0",
@@ -33,7 +33,25 @@
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "rules": {
+      "no-use-before-define": 0,
+      "react/display-name": 0,
+      "react/jsx-boolean-value": 1,
+      "react/jsx-no-undef": 2,
+      "react/jsx-sort-prop-types": 0,
+      "react/jsx-sort-props": 0,
+      "react/jsx-uses-react": 1,
+      "react/jsx-uses-vars": 1,
+      "react/no-did-mount-set-state": 1,
+      "react/no-did-update-set-state": 2,
+      "react/no-unknown-property": 2,
+      "react/prop-types": 0,
+      "react/react-in-jsx-scope": 0,
+      "react/self-closing-comp": 2,
+      "react/sort-comp": 2,
+      "react/jsx-wrap-multilines": 2
+    }
   },
   "browserslist": {
     "production": [

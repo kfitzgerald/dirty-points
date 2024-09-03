@@ -74,7 +74,7 @@ export default function SceneGroupDroppable({ group, groupIndex }) {
                                     className="draggable-scene-list"
                                 >
                                     <div className="handle">
-                                        <i className="bi bi-grip-horizontal"></i>
+                                        <i className="bi bi-grip-horizontal"/>
                                     </div>
                                     <Form.Check type="switch"
                                                 checked={scene.enabled}

@@ -39,7 +39,7 @@ export default function ExportModal({ show, onClose }) {
                         Export Config
                     </Modal.Title>
                     <CopyButton value={data} variant="link" className="copy-channel-button">
-                        <i className="bi bi-clipboard"></i>
+                        <i className="bi bi-clipboard"/>
                     </CopyButton>
                 </Modal.Header>
                     <Modal.Body>
@@ -54,7 +54,7 @@ export default function ExportModal({ show, onClose }) {
                                     <h4>Option 2: Drag</h4>
                                     <div className="export-file-icon" draggable="true" onDragStart={(e) => {
                                         e.dataTransfer.setData('DownloadURL', `application/json:dirty-points.json:${file}`);
-                                    }}><i className="bi bi-file-earmark-arrow-down"></i></div>
+                                    }}><i className="bi bi-file-earmark-arrow-down"/></div>
                                     Drag file to filesystem to save
                                 </Col>
                             </Row>

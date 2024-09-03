@@ -17,7 +17,7 @@ export default function CreateRewardButton() {
 
     return (
         <>
-            <Button onClick={handleShow}><i className="bi bi-plus-circle"></i> Create Reward</Button>
+            <Button onClick={handleShow}><i className="bi bi-plus-circle"/> Create Reward</Button>
             <RewardModal show={show} onClose={handleClose} reward={null} />
         </>
     )

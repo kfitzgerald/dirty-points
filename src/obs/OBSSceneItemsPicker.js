@@ -75,8 +75,8 @@ export function OBSSceneItemsPicker({ secondaryMapping = null, onAdd=null, onCha
                 <Form.Label className="fw-semibold">OBS Scene</Form.Label>
                 <Select
                     name="sceneName"
-                    unstyled={true}
-                    isClearable={true}
+                    unstyled
+                    isClearable
                     classNamePrefix="react-select"
                     classNames={{
                         container: () => `form-control`,
@@ -93,8 +93,8 @@ export function OBSSceneItemsPicker({ secondaryMapping = null, onAdd=null, onCha
                 <Select
                     name="sceneItems"
                     classNamePrefix="react-select"
-                    isMulti={true}
-                    unstyled={true}
+                    isMulti
+                    unstyled
                     classNames={{
                         container: () => `form-control`,
                         option: () => 'dropdown-item',

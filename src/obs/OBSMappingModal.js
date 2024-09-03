@@ -150,8 +150,8 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
                             <Form.Label className="fw-semibold">OBS Scene</Form.Label>
                             <Select
                                 name="sceneName"
-                                unstyled={true}
-                                isClearable={true}
+                                unstyled
+                                isClearable
                                 classNamePrefix="react-select"
                                 classNames={{
                                     container: () => `form-control`,
@@ -169,8 +169,8 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
                             <Select
                                 name="sceneItems"
                                 classNamePrefix="react-select"
-                                isMulti={true}
-                                unstyled={true}
+                                isMulti
+                                unstyled
                                 classNames={{
                                     container: () => `form-control`,
                                     option: () => 'dropdown-item',
@@ -218,8 +218,8 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
                                 <Form.Label className="fw-semibold">Scene on Timeout</Form.Label>
                                 <Select
                                     name="timeoutScene"
-                                    unstyled={true}
-                                    isClearable={true}
+                                    unstyled
+                                    isClearable
                                     classNamePrefix="react-select"
                                     classNames={{
                                         container: () => `form-control`,
@@ -251,8 +251,8 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
                                 <Select
                                     name="chatCommandBadges"
                                     classNamePrefix="react-select"
-                                    isMulti={true}
-                                    unstyled={true}
+                                    isMulti
+                                    unstyled
                                     classNames={{
                                         container: () => `form-control`,
                                         option: () => 'dropdown-item',

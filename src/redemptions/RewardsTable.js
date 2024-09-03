@@ -118,7 +118,7 @@ export default function RewardsTable({ showOther=false }) {
                                     <td className="reward-mapping">
                                         <RewardMappingButton reward={reward} onClick={handleEditMapping} mapping={mappings[reward.id]} />
                                     </td>
-                                    <td><Button variant="secondary" onClick={() => testReward(reward)} ><i className="bi bi-bullseye"></i></Button></td>
+                                    <td><Button variant="secondary" onClick={() => testReward(reward)} ><i className="bi bi-bullseye"/></Button></td>
                                 </tr>
                             ))
                         )

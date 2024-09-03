@@ -14,7 +14,9 @@ export default function ErrorMessage({ error }) {
         message = "Session expired, please login again :)";
     }
 
-    return <>
-        {message}
-    </>
+    return (
+        <>
+            {message}
+        </>
+    );
 }

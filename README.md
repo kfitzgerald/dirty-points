@@ -192,6 +192,10 @@ That's it. Really basic!
 
 # Changelog
 
+### v1.3.0 - 2024-09-03
+- Fixed scene cycle controller ignoring full stop state
+- Disabling full-stop while scene cycle is active will resume cycling
+
 ### v1.2.0 - 2024-09-01
 - OBS studio mode state now synchronized on websocket connect
 

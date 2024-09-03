@@ -11,17 +11,18 @@ export default class SceneCycleController {
     }
 
     watchState() {
-        let { cycleEnabled, activeCycle, activeCycleSceneIndex, currentProgramSceneName, cyclePaused } = this.getState();
+        let { cycleEnabled, activeCycle, activeCycleSceneIndex, currentProgramSceneName, cyclePaused, fullStop } = this.getState();
         this.redux.subscribe(() => {
             let {
                 cycleEnabled: newCycleEnabled,
                 activeCycle: newActiveCycle,
                 activeCycleSceneIndex: newActiveCycleSceneIndex,
                 currentProgramSceneName: newCurrentProgramSceneName,
-                cyclePaused: newCyclePaused
+                cyclePaused: newCyclePaused,
+                fullStop: newFullStop
             } = this.getState();
 
-            let enabledChanged, groupChanged, pauseChanged;
+            let enabledChanged, groupChanged, pauseChanged, fullStopChanged;
 
             if (newCycleEnabled !== cycleEnabled) {
                 console.log('SceneCycleController: enabled changed', newCycleEnabled);
@@ -38,6 +39,11 @@ export default class SceneCycleController {
                 pauseChanged = true;
             }
 
+            if (newFullStop !== fullStop) {
+                console.log('SceneCycleController: %s', (newFullStop ? 'full-stopped' : 'un-full-stopped'), newCyclePaused);
+                fullStopChanged = true;
+            }
+
             if (newActiveCycleSceneIndex !== activeCycleSceneIndex) {
                 console.log('SceneCycleController: scene index changed', newActiveCycleSceneIndex)
             }
@@ -52,11 +58,12 @@ export default class SceneCycleController {
             activeCycleSceneIndex = newActiveCycleSceneIndex;
             currentProgramSceneName = newCurrentProgramSceneName;
             cyclePaused = newCyclePaused;
+            fullStop = newFullStop;
 
             // Trigger events
-            if (enabledChanged || groupChanged || pauseChanged) {
-                if (newCycleEnabled && newActiveCycle && !newCyclePaused) {
-                    this.onStartCycle(!newCycleEnabled && !newActiveCycle && pauseChanged);
+            if (enabledChanged || groupChanged || pauseChanged || fullStopChanged) {
+                if (newCycleEnabled && newActiveCycle && !newCyclePaused && !newFullStop) {
+                    this.onStartCycle(!newCycleEnabled && !newActiveCycle && (pauseChanged || fullStopChanged));
                 } else {
                     this.onStopCycle();
                 }
@@ -101,15 +108,15 @@ export default class SceneCycleController {
     }
 
     async _sceneLoop() {
-        const { activeCycle, activeCycleSceneIndex, cycleEnabled, cyclePaused } = this.getState();
+        const { activeCycle, activeCycleSceneIndex, cycleEnabled, cyclePaused, fullStop } = this.getState();
         const dispatch = this.redux.dispatch;
 
         // Clear any dangling timeout, just in case this was fired in parallel
         this._clearLoopHandle();
 
         // If disabled, paused, or activeCycle is gone, stop
-        if (!cycleEnabled || !activeCycle || cyclePaused) {
-            console.log('SceneCycleController: ending loop cycle', { cycleEnabled, cyclePaused, activeCycle });
+        if (!cycleEnabled || !activeCycle || cyclePaused || fullStop) {
+            console.log('SceneCycleController: ending loop cycle', { cycleEnabled, cyclePaused, activeCycle, fullStop });
             return;
         }
 
@@ -194,7 +201,9 @@ export default class SceneCycleController {
 
 
     getState() {
-        const { cycleEnabled, activeCycle, activeCycleSceneIndex, currentProgramSceneName, cyclePaused } = this.redux.getState().obs;
-        return { cycleEnabled, activeCycle, activeCycleSceneIndex, currentProgramSceneName, cyclePaused };
+        const { obs, app } = this.redux.getState()
+        const { cycleEnabled, activeCycle, activeCycleSceneIndex, currentProgramSceneName, cyclePaused } = obs;
+        const { fullStop } = app;
+        return { cycleEnabled, activeCycle, activeCycleSceneIndex, currentProgramSceneName, cyclePaused, fullStop };
     }
 }

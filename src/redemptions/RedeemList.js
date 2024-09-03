@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useState} from "react";
-import {useDispatch, useSelector} from "react-redux";
+import {shallowEqual, useDispatch, useSelector} from "react-redux";
 import './RedeemList.scss';
 import {Accordion, Badge, Button, Container, Nav, Navbar, NavDropdown, Tab, Tabs} from "react-bootstrap";
 import {revokeToken} from "../session/SessionActions";
@@ -39,7 +39,7 @@ export default function RedeemList() {
         state.obs,
         state.redemptions,
         state.app.fullStop,
-    ]);
+    ], shallowEqual);
     const [ showExportModal, setShowExportModal ] = useState(false);
     const {getRootProps, getInputProps, open} = useDropzone({
         // Disable click and keydown behavior
@@ -177,7 +177,7 @@ export default function RedeemList() {
             <Tab.Container id="stream-tabs" defaultActiveKey="mappings">
                 <div className="navbar navbar-expand navbar-dark bg-dark sticky-top">
                     <Container>
-                        <Nav className="me-auto" navbar={true} bsPrefix="navbar-nav">
+                        <Nav className="me-auto" navbar bsPrefix="navbar-nav">
                             <Nav.Item>
                                 <Nav.Link eventKey="mappings">Rewards</Nav.Link>
                             </Nav.Item>
@@ -221,7 +221,7 @@ export default function RedeemList() {
                                 </h2>
                                 <div>
                                     <Button className="me-2" variant="secondary" onClick={handleOBSUpdate}><i
-                                        className="bi bi-arrow-clockwise"></i></Button>
+    className="bi bi-arrow-clockwise"/></Button>
                                 </div>
                             </div>
 
@@ -252,7 +252,7 @@ export default function RedeemList() {
                                 </h2>
                                 <div>
                                     <Button className="me-2" variant="secondary" onClick={handleTwitchRefresh}><i
-                                        className="bi bi-arrow-clockwise"></i></Button>
+    className="bi bi-arrow-clockwise"/></Button>
                                     <CreateRewardButton/>
                                 </div>
                             </div>
@@ -262,7 +262,7 @@ export default function RedeemList() {
                                     <RewardsTable showOther={false}/>
                                 </Tab>
                                 <Tab eventKey="other" title="Other Rewards" className="pt-3">
-                                    <RewardsTable showOther={true}/>
+                                    <RewardsTable showOther />
                                 </Tab>
 
                             </Tabs>

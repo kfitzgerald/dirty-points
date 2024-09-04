@@ -17,16 +17,34 @@ export class RedemptionQueue {
 
     _watchQueue() {
         let lastQueue = this._getQueueContents();
+        let { fullStop: lastFullStop } = this._getState();
         this.redux.subscribe(() => {
             let newQueue = this._getQueueContents();
+            let { fullStop: newFullStop } = this._getState();
+            let shouldProcess = false;
+
+            // Check if queue changed
             if (newQueue !== lastQueue) {
-                console.log('RedemptionQueue: queue changed, triggering processor', newQueue, lastQueue, newQueue === lastQueue);
                 if (newQueue.length > 0) {
                     // noinspection JSIgnoredPromiseFromCall
-                    this._tryProcessQueue();
+                    shouldProcess = true;
                 }
+                console.log('RedemptionQueue: queue changed, triggering processor', { newQueue, lastQueue, shouldProcess });
             }
             lastQueue = newQueue;
+
+            // Check if full-stop was disabled to restart the processor
+            if (newFullStop !== lastFullStop) {
+                shouldProcess = shouldProcess || !newFullStop;
+                console.log('RedemptionQueue: full-stop disabled, triggering processor', { shouldProcess });
+            }
+            lastFullStop = newFullStop;
+
+            // Start the queue if needed
+            if (shouldProcess) {
+                return this._tryProcessQueue();
+            }
+
         });
     }
 
@@ -36,7 +54,15 @@ export class RedemptionQueue {
      * @protected
      */
     async _tryProcessQueue() {
+
+        // Wait time between redemptions
         await this._cooldown(this.tickInverval);
+
+        // Check if stopped
+        let { fullStop } = this._getState();
+        if (fullStop) return;
+
+        // Run the queue
         return this._process();
     }
 
@@ -116,6 +142,11 @@ export class RedemptionQueue {
     _getQueueContents() {
         // Expected to be overridden
         return ['this should not be called'];
+    }
+
+    _getState() {
+        const { fullStop } = this.redux.getState().app;
+        return { fullStop };
     }
 
     async _execute(task) {

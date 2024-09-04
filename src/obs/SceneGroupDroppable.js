@@ -2,11 +2,13 @@ import {useCallback, useEffect, useState} from "react";
 import {Button, Form, ListGroup} from "react-bootstrap";
 import {Draggable, Droppable} from "react-beautiful-dnd";
 import {OBSScenePicker} from "./OBSScenePicker";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {deleteSceneCycleItem, updateSceneCycleItem} from "./OBSActions";
+import './OBS.scss';
 
 export default function SceneGroupDroppable({ group, groupIndex }) {
     const [ enabled, setEnabled ] = useState(false);
+    const currentProgramSceneName = useSelector(state => state.obs.currentProgramSceneName);
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -71,7 +73,7 @@ export default function SceneGroupDroppable({ group, groupIndex }) {
                                     {...draggableProvided.dragHandleProps}
                                     id={`group-${groupIndex}-scene-${sceneIndex}`}
                                     data-index={sceneIndex}
-                                    className="draggable-scene-list"
+                                    className={`draggable-scene-list ${currentProgramSceneName === scene.sceneName ? 'scene-active' : ''}`}
                                 >
                                     <div className="handle">
                                         <i className="bi bi-grip-horizontal"/>

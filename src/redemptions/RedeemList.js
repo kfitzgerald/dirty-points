@@ -113,16 +113,33 @@ export default function RedeemList() {
     }, [open]);
 
     const handleOBSUpdate = useCallback(async (/*event*/) => {
-        await dispatch(disconnectFromOBS());
-        dispatch(connectToOBS());
-    }, [dispatch]);
+        switch (obs.status) {
+            case OBS_CONNECTION_STATUS.connected:
+                return dispatch(disconnectFromOBS());
+
+            case OBS_CONNECTION_STATUS.disconnected:
+                return dispatch(connectToOBS());
+
+            default:
+                return;
+        }
+    }, [dispatch, obs.status]);
 
     const handleTwitchRefresh = useCallback(async () => {
-        await dispatch(disconnectFromTwitch());
-        dispatch(connectToTwitch());
-        dispatch(fetchRedemptionList());
-        dispatch(fetchManageableRedemptionList());
-    }, [dispatch]);
+        switch (redemptions.status) {
+            case TWITCH_CONNECTION_STATUS.connected:
+              return dispatch(disconnectFromTwitch());
+
+            case TWITCH_CONNECTION_STATUS.disconnected:
+                dispatch(connectToTwitch());
+                dispatch(fetchRedemptionList());
+                dispatch(fetchManageableRedemptionList());
+                return;
+
+            default:
+                return;
+        }
+    }, [dispatch, redemptions.status]);
 
     const handleCycleToggle = useCallback(async () => {
         if (obs.activeCycle && obs.cycleEnabled) {
@@ -137,10 +154,11 @@ export default function RedeemList() {
 
     const handleFullStopToggle = useCallback(async () => {
         dispatch(setFullStopEnabled(!fullStop));
-        if (obs.activeCycle && obs.cycleEnabled && (!fullStop)) {
-            dispatch(stopSceneCycle());
-        }
-    }, [dispatch, fullStop, obs]);
+        // 2024-09-03: Disabling this functionality so it works more like the obs studio mode integration
+        // if (obs.activeCycle && obs.cycleEnabled && (!fullStop)) {
+        //     dispatch(stopSceneCycle());
+        // }
+    }, [dispatch, fullStop/*, obs*/]);
 
     const getStatusButton = () => {
         let Icon = PauseIcon;
@@ -221,7 +239,7 @@ export default function RedeemList() {
                                 </h2>
                                 <div>
                                     <Button className="me-2" variant="secondary" onClick={handleOBSUpdate}><i
-    className="bi bi-arrow-clockwise"/></Button>
+    className={`bi ${obs.status === OBS_CONNECTION_STATUS.connected ? 'bi-pause-circle' : obs.status === OBS_CONNECTION_STATUS.disconnected ? 'bi-play-circle' : 'bi-hourglass'}`}/></Button>
                                 </div>
                             </div>
 
@@ -252,7 +270,7 @@ export default function RedeemList() {
                                 </h2>
                                 <div>
                                     <Button className="me-2" variant="secondary" onClick={handleTwitchRefresh}><i
-    className="bi bi-arrow-clockwise"/></Button>
+    className={`bi ${redemptions.status === TWITCH_CONNECTION_STATUS.connected ? 'bi-pause-circle' : redemptions.status === TWITCH_CONNECTION_STATUS.disconnected ? 'bi-play-circle' : 'bi-hourglass'}`}/></Button>
                                     <CreateRewardButton/>
                                 </div>
                             </div>

@@ -212,13 +212,8 @@ export function getNextQueuedSourceReward() {
 
 export function executeReward(rewardId) {
     return async (dispatch, getState) => {
-        const {redemptions, app} = getState();
+        const {redemptions} = getState();
         const {mappings} = redemptions;
-
-        if (app.fullStop) {
-            console.info(`executeReward: Full stop - no redeems happening right now`);
-            return;
-        }
 
         let mapping = mappings[rewardId];
         if (!mapping) {

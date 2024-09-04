@@ -59,16 +59,19 @@ When correctly configured, both OBS and Twitch should have a green status icon a
 3. **Cycle toggle**, will start/pause the last activated scene cycle group
 4. **Status Icons**, shows the connection status of OBS and Twitch
 5. **Session Dropdown**, import/export settings and sign out of the app
-6. **OBS Refresh**, force reconnect to OBS and refreshes scene/source information
+6. **OBS Refresh**, disconnect/connect to OBS, and refreshes scene/source information
 7. **Scene List**, shows all the scenes in OBS, use as a crude way to change scenes remotely
 8. **OBS WebSocket**, manage the OBS websocket configuration
-9. **Twitch Refresh**, force reconnect to Twitch and refreshes reward information
+9. **Twitch Refresh**, disconnect/connect to Twitch, and refreshes reward information
 10. **Create Reward**, shows the Create Twitch Reward modal 
 11. **Reward Group Tabs**, switch between manageable rewards (ones created by this app) and other rewards (ones created outside this app)
 12. **Toggle Reward**, enable or disable a Twitch reward (show/hide in the channel points Twitch UX)
 13. **Manage Reward**, click the reward name to manage the Twitch reward settings
 14. **Manage OBS Mapping**, click to manage the scene/source settings
 15. **Trigger**, manually trigger a redemption for testing
+
+> Note: in version 1.4.0, the OBS and Twitch refresh buttons were replaced with connect/disconnect buttons. This lets
+> use a second device (with Twitch disconnected) to control scenes remotely, preventing duplicate redemptions.
 
 ### Cycle Tab 
 
@@ -133,15 +136,15 @@ Configuration:
 > Then the next scene in the cycle group will be displayed. The cycle start/stop icon will change color to 
 > indicate that the cycle has been paused while the reward is executing.
 
-### Examples
+## Examples
 
-#### Camera View Redemption
+### Camera View Redemption
 The most basic function is for a redemption to change the scene. For example:
 
 - Set `OBS Scene` to the corresponding camera scene
 - If you'd like to only temporarily show that view and return to the main scene, set `Timeout` and `Scene on Timeout` 
 
-#### Video Redemption
+### Video Redemption
 Perhaps you have a fixed-length video scene, like a timelapse, that you want to play out entirely before changing scene.
 
 - Set the `OBS Scene` to the corresponding video scene
@@ -150,7 +153,7 @@ Perhaps you have a fixed-length video scene, like a timelapse, that you want to 
 
 > Note: If a cycle group is active, the `Scene on Timeout` will be overridden with the next scene in the group
 
-#### Show Event Flyer
+### Show Event Flyer
 Maybe you'd like to let the viewers show/hide the event flyer you are on, which is a scene source on multiple scenes
 
 - Set the `OBS Scene` the flyer source is on
@@ -163,7 +166,7 @@ For example:
 In this screenshot, the Flyer Container source exists on four different scenes, and will all be toggled on for 21 seconds
 and then off, all at the same time. Viewers can also use the `!flyer` command to trigger the redemption.
 
-### Helpful Tips
+## Helpful Tips
 
 When working with redemptions and cycle groups, it's best to think of how the two will interact with each other.
 
@@ -176,6 +179,24 @@ For example,
 - Some rewards should show a scene and may remain there until changed (either by reward or cycle) 
 > Set the timeout to the minimum amount of time you think the scene should show for (e.g. 60) and then set the timeout 
 > scene to itself. If a cycle group is active, the next group scene will be used instead.
+
+## Full-Stop Mode
+
+![dp-full-stop.png](docs/dp-full-stop.png)
+
+Full-stop mode can be toggled using the stop-sign button at the top of the screen, or toggling OBS Studio mode. 
+
+**When full-stop is enabled:**
+- all reward queues are paused
+- new redemptions will continue to be queued
+- scene cycling will be paused
+
+**When full-stop is disabled:**
+- all reward queues will resume processing redemptions
+- scene cycling will resume, if enabled
+
+Since full-stop is also linked to OBS studio-mode, you can use a Stream Deck to toggle studio mode to effectively pause 
+redemptions and scene changes.
 
 ## Privacy & Permissions
 
@@ -191,6 +212,13 @@ That's it. Really basic!
 
 
 # Changelog
+
+### v1.4.0 - 2024-09-03
+- Redemption queues now continue to fill while full-stop is enabled (previously, redemptions were discarded)
+- When full-stop is disabled, redemption queues will resume processing rewards
+- OBS and Twitch refresh buttons have been replaced with Start/Stop buttons
+- Active scene highlighted in scene cycle groups
+- Enabling full-stop no longer implicitly stops the active scene cycle group
 
 ### v1.3.0 - 2024-09-03
 - Fixed scene cycle controller ignoring full stop state

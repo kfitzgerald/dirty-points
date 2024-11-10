@@ -22,6 +22,8 @@ import {
 import {DragDropContext} from "react-beautiful-dnd";
 import SceneGroupDroppable from "./SceneGroupDroppable";
 import {setFullStopEnabled} from "../app/AppActions";
+import SceneCycleEditModal from "./SceneCycleEditModal";
+import HoverToolTip from "../common/HoverToolTip";
 
 export function getEmptySceneItem() {
     return {
@@ -36,6 +38,8 @@ export default function OBSSceneCycleView() {
     const dispatch = useDispatch();
     const [obs, fullStop] = useSelector(state => [state.obs, state.app.fullStop], shallowEqual);
     const [accordionKey, setAccordionKey] = useState(null);
+    const [editingGroup, setEditingGroup] = useState(null);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     const { cycleGroups, activeCycle, cycleEnabled } = obs;
 
@@ -74,14 +78,9 @@ export default function OBSSceneCycleView() {
     }, [ dispatch ]);
 
     const handleRenameSceneGroup = useCallback((group) => {
-        const name = prompt("Rename scene group", group.name);
-        if (name && name.trim()) {
-            dispatch(updateSceneCycleGroup(group, {
-                ...group,
-                name: name.trim()
-            }))
-        }
-    }, [ dispatch ]);
+        setEditingGroup(group);
+        setShowEditModal(true);
+    }, []);
 
     const handleGroupPlayPauseClick = useCallback((group) => {
         if (activeCycle === group && cycleEnabled) {
@@ -97,6 +96,10 @@ export default function OBSSceneCycleView() {
         }
 
     }, [ dispatch, activeCycle, cycleEnabled, fullStop ]);
+
+    const handleEditGroupClose = useCallback(() => {
+        setShowEditModal(false);
+    }, [setShowEditModal]);
 
     const formik = useFormik({
         initialValues: {
@@ -135,15 +138,17 @@ export default function OBSSceneCycleView() {
                     </Form.Group>
                     <Form.Group as={Col} xs={3} controlId="duration" className="mb-3">
                         <Form.Label className="fw-semibold">Base Duration</Form.Label>
-                        <Form.Control
-                            name="duration"
-                            type="number"
-                            value={formik.values.duration}
-                            isInvalid={formik.touched.duration && !!formik.errors.duration}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            min={0}
-                        />
+                        <HoverToolTip text="Duration in seconds to show each scene by default" placement="top" delay={250}>
+                            <Form.Control
+                                name="duration"
+                                type="number"
+                                value={formik.values.duration}
+                                isInvalid={formik.touched.duration && !!formik.errors.duration}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                min={0}
+                            />
+                        </HoverToolTip>
                         <Form.Control.Feedback type="invalid">{formik.errors.duration}</Form.Control.Feedback>
                     </Form.Group>
                     <Col xs={4}>
@@ -163,13 +168,15 @@ export default function OBSSceneCycleView() {
                     {cycleGroups.map((group, i) => (
                         <Card key={i} className="accordion-item">
                             <div className={"custom-accordion-header d-flex"+(accordionKey === i ? '' : ' collapsed')}>
-                                <Button variant="link" className="ps-3 pe-3" onClick={() => handleGroupPlayPauseClick(group)}>
-                                    {(obs.activeCycle === group && obs.cycleEnabled) ? (
-                                        <i className="bi bi-pause-circle-fill text-info fs-4"/>
-                                    ) : (
-                                        <i className="bi bi-play-circle text-success fs-4"/>
-                                    )}
-                                </Button>
+                                <HoverToolTip text={(obs.activeCycle === group && obs.cycleEnabled) ? 'Stop group cycling' : 'Start group cycling' } placement="top" delay={250}>
+                                    <Button variant="link" className="ps-3 pe-3" onClick={() => handleGroupPlayPauseClick(group)}>
+                                        {(obs.activeCycle === group && obs.cycleEnabled) ? (
+                                            <i className="bi bi-pause-circle-fill text-info fs-4"/>
+                                        ) : (
+                                            <i className="bi bi-play-circle text-success fs-4"/>
+                                        )}
+                                    </Button>
+                                </HoverToolTip>
                                 {/*<Button variant="link" className="ps-3 pe-3"><i className="bi bi-pause-circle-fill text-info fs-4"></i></Button>*/}
                                 <CustomToggle className={"fw-bold fs-4"+ (accordionKey === i ? '' : ' collapsed')} eventKey={i}>{group.name}</CustomToggle>
                             </div>
@@ -180,22 +187,33 @@ export default function OBSSceneCycleView() {
                                     </DragDropContext>
                                     <div className="d-flex justify-content-between align-items-center mt-3">
                                         <div>
-                                        <Button onClick={() => handleAddNewScene(group)}><i className="bi bi-plus-circle"/> <span className="d-none d-sm-inline">Add Scene</span></Button>
-                                        <Button variant="secondary" className="ms-3" onClick={() => handleRenameSceneGroup(group)}><i className="bi bi-pencil-fill"/></Button>
-                                        <Button variant="danger" className="ms-3" onClick={() => handleDeleteGroup(group)}><i
-                                            className="bi bi-trash3-fill"/></Button>
+                                            <HoverToolTip text="Add a scene to the group" placement="top" delay={250}>
+                                                <Button onClick={() => handleAddNewScene(group)}><i className="bi bi-plus-circle"/> <span className="d-none d-sm-inline">Add Scene</span></Button>
+                                            </HoverToolTip>
+                                            <HoverToolTip text="Edit group" placement="top" delay={250}>
+                                                <Button variant="secondary" className="ms-3" onClick={() => handleRenameSceneGroup(group)}><i className="bi bi-pencil-fill"/></Button>
+                                            </HoverToolTip>
+                                            <HoverToolTip text="Remove scene group" placement="top" delay={250}>
+                                                <Button variant="danger" className="ms-3" onClick={() => handleDeleteGroup(group)}><i
+                                                        className="bi bi-trash3-fill"/></Button>
+                                            </HoverToolTip>
                                         </div>
+
                                         <Form.Group controlId="base-duration">
-                                            <Form.Label className="fw-semibold">Base Duration</Form.Label>
-                                            <Form.Control
-                                                name="duration"
-                                                type="number"
-                                                className="d-inline-block ms-3"
-                                                style={{maxWidth: '5rem'}}
-                                                value={group.duration}
-                                                onChange={(e) => handleUpdateSceneDuration(e, group)}
-                                                min={0}
-                                            />
+                                            <HoverToolTip text="How long a scene should be shown by default" placement="top" delay={250}>
+                                                <Form.Label className="fw-semibold">Base Duration</Form.Label>
+                                            </HoverToolTip>
+                                            <HoverToolTip text="How long a scene should be shown by default" placement="top" delay={250}>
+                                                <Form.Control
+                                                    name="duration"
+                                                    type="number"
+                                                    className="d-inline-block ms-3"
+                                                    style={{maxWidth: '5rem'}}
+                                                    value={group.duration}
+                                                    onChange={(e) => handleUpdateSceneDuration(e, group)}
+                                                    min={0}
+                                                />
+                                            </HoverToolTip>
                                         </Form.Group>
                                     </div>
                                 </Card.Body>
@@ -205,6 +223,10 @@ export default function OBSSceneCycleView() {
 
                 </Accordion>
             )}
+            <SceneCycleEditModal onClose={handleEditGroupClose}
+                                 show={showEditModal && editingGroup}
+                                 sceneCycleGroup={editingGroup}
+            />
         </Container>
     );
 }

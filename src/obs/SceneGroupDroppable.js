@@ -5,6 +5,7 @@ import {OBSScenePicker} from "./OBSScenePicker";
 import {useDispatch, useSelector} from "react-redux";
 import {deleteSceneCycleItem, updateSceneCycleItem} from "./OBSActions";
 import './OBS.scss';
+import HoverToolTip from "../common/HoverToolTip";
 
 export default function SceneGroupDroppable({ group, groupIndex }) {
     const [ enabled, setEnabled ] = useState(false);
@@ -75,24 +76,32 @@ export default function SceneGroupDroppable({ group, groupIndex }) {
                                     data-index={sceneIndex}
                                     className={`draggable-scene-list ${currentProgramSceneName === scene.sceneName ? 'scene-active' : ''}`}
                                 >
-                                    <div className="handle">
-                                        <i className="bi bi-grip-horizontal"/>
-                                    </div>
-                                    <Form.Check type="switch"
-                                                checked={scene.enabled}
-                                                onChange={(event) => handleSceneToggle(event, group, scene)}/>
+                                    <HoverToolTip text="Drag to reorder" placement="top" delay={250}>
+                                        <div className="handle">
+                                            <i className="bi bi-grip-horizontal"/>
+                                        </div>
+                                    </HoverToolTip>
+                                    <HoverToolTip text={scene.enabled ? 'Disable scene' : 'Enable scene'} placement="top" delay={250}>
+                                        <Form.Check type="switch"
+                                                    checked={scene.enabled}
+                                                    onChange={(event) => handleSceneToggle(event, group, scene)}/>
+                                    </HoverToolTip>
                                     <OBSScenePicker scene={scene.sceneName}
                                                     onChange={value => handleSceneNameChange(value, group, scene)}/>
-                                    <Form.Control
-                                        name="duration"
-                                        type="number"
-                                        value={scene.duration || 0}
-                                        onChange={value => handleSceneDurationChange(value, group, scene)}
-                                        min={0}
-                                    />
-                                    <Button variant="danger" onClick={() => handleDeleteSceneFromGroup(group, scene)} className="me-2">
-                                        <i className="bi bi-trash3-fill"/>
-                                    </Button>
+                                    <HoverToolTip text="Scene duration in seconds (use `0` for base)" placement="top" delay={250}>
+                                        <Form.Control
+                                            name="duration"
+                                            type="number"
+                                            value={scene.duration || 0}
+                                            onChange={value => handleSceneDurationChange(value, group, scene)}
+                                            min={0}
+                                        />
+                                    </HoverToolTip>
+                                    <HoverToolTip text="Remove scene from group" placement="top" delay={250}>
+                                        <Button variant="danger" onClick={() => handleDeleteSceneFromGroup(group, scene)} className="me-2">
+                                            <i className="bi bi-trash3-fill"/>
+                                        </Button>
+                                    </HoverToolTip>
                                 </ListGroup.Item>
                             )}
                         </Draggable>

@@ -4,6 +4,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {Formik} from "formik";
 import * as Yup from 'yup';
 import {createReward, deleteReward, fetchManageableRedemptionList, updateReward} from "./RedemptionActions";
+import HoverToolTip from "../common/HoverToolTip";
 
 export default function RewardModal({ show, onClose, reward=null }) {
     const dispatch = useDispatch();
@@ -365,12 +366,16 @@ export default function RewardModal({ show, onClose, reward=null }) {
                                 <Modal.Footer>
                                     {reward && (
                                         <div className="flex-grow-1">
-                                            <Button variant="danger" onClick={handleDelete} className="me-2">
-                                                <i className="bi bi-trash3-fill"/>
-                                            </Button>
-                                            <Button variant="warning" onClick={handleDuplicate}>
-                                                <i className="bi bi-copy"/>
-                                            </Button>
+                                            <HoverToolTip text="Delete reward" placement="top" delay={250}>
+                                                <Button variant="danger" onClick={handleDelete} className="me-2">
+                                                    <i className="bi bi-trash3-fill"/>
+                                                </Button>
+                                            </HoverToolTip>
+                                            <HoverToolTip text="Duplicate reward" placement="top" delay={250}>
+                                                <Button variant="warning" onClick={handleDuplicate}>
+                                                    <i className="bi bi-copy"/>
+                                                </Button>
+                                            </HoverToolTip>
                                         </div>
                                     )}
                                     <Button variant="secondary" onClick={onClose}>

@@ -6,6 +6,7 @@ import {clearCreateUpdateErrors, executeReward, updateReward} from "./Redemption
 import RewardModal from "./RewardModal";
 import OBSMappingModal from "../obs/OBSMappingModal";
 import RewardMappingButton from "./RewardMappingButton";
+import HoverToolTip from "../common/HoverToolTip";
 
 export default function RewardsTable({ showOther=false }) {
     const dispatch = useDispatch();
@@ -105,20 +106,33 @@ export default function RewardsTable({ showOther=false }) {
                         ) : (
                             rewards.sort((a, b) => a.title.localeCompare(b.title)).map((reward, i) => (
                                 <tr key={i}>
-                                    <td className="pe-0"><Form.Check type="switch"
-                                                    checked={reward.is_enabled}
-                                                    disabled={showOther}
-                                                    onChange={() => handleToggleReward(reward.id)}/>
+                                    <td className="pe-0">
+                                        <HoverToolTip text={reward.is_enabled ? 'Disable reward' : 'Enable reward'} placement="top" delay={250}>
+                                            <Form.Check type="switch"
+                                                        checked={reward.is_enabled}
+                                                        disabled={showOther}
+                                                        onChange={() => handleToggleReward(reward.id)}/>
+                                        </HoverToolTip>
                                     </td>
-                                    <td className="reward-title"><Button data-id={reward.id}
-                                                variant="link"
-                                                className="text-start ps-0 pe-0"
-                                                onClick={handleEditReward}
-                                    >{reward.title}</Button></td>
+                                    <td className="reward-title">
+                                        <HoverToolTip text="Manage Twitch reward settings" placement="top" delay={250}>
+                                            <Button data-id={reward.id}
+                                                    variant="link"
+                                                    className="text-start ps-0 pe-0"
+                                                    onClick={handleEditReward}
+                                            >{reward.title}</Button>
+                                        </HoverToolTip>
+                                    </td>
                                     <td className="reward-mapping">
+
                                         <RewardMappingButton reward={reward} onClick={handleEditMapping} mapping={mappings[reward.id]} />
+
                                     </td>
-                                    <td><Button variant="secondary" onClick={() => testReward(reward)} ><i className="bi bi-bullseye"/></Button></td>
+                                    <td>
+                                        <HoverToolTip text={'Trigger redemption'} placement="left" delay={250}>
+                                            <Button variant="secondary" onClick={() => testReward(reward)} ><i className="bi bi-bullseye"/></Button>
+                                        </HoverToolTip>
+                                    </td>
                                 </tr>
                             ))
                         )

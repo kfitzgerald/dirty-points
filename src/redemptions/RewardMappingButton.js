@@ -1,5 +1,6 @@
 import {Button} from "react-bootstrap";
 import {convertStringMapping} from "./RewardUtil";
+import HoverToolTip from "../common/HoverToolTip";
 
 export default function RewardMappingButton({ reward, mapping, onClick }) {
 
@@ -25,10 +26,12 @@ export default function RewardMappingButton({ reward, mapping, onClick }) {
     }
 
     return (
-        <Button data-id={reward.id}
-                variant="link"
-                className={`text-start ps-0 pe-0 ${mappingStatus}`}
-                onClick={onClick}
-        >{mappingDescription}</Button>
+        <HoverToolTip text="Manage OBS reward mappings" placement="top" delay={250}>
+            <Button data-id={reward.id}
+                    variant="link"
+                    className={`text-start ps-0 pe-0 ${mappingStatus}`}
+                    onClick={onClick}
+            >{mappingDescription}</Button>
+        </HoverToolTip>
     )
 }

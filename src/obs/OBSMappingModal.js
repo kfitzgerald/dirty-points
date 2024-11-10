@@ -6,6 +6,7 @@ import {deleteRedemptionMapping, setRedemptionMapping} from "../redemptions/Rede
 import {convertStringMapping, getEmptyMapping} from "../redemptions/RewardUtil";
 import {OBSSceneItemsPicker} from "./OBSSceneItemsPicker";
 import {CHAT_BADGES} from "../common/Constants";
+import HoverToolTip from "../common/HoverToolTip";
 
 export default function OBSMappingModal({ show, onClose, reward=null }) {
     const dispatch = useDispatch();
@@ -165,7 +166,7 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
                         </Form.Group>
 
                         <Form.Group controlId="sceneItems" className="mb-3">
-                            <Form.Label className="fw-semibold">Scene Items</Form.Label>
+                            <Form.Label className="fw-semibold">Scene Items (optional)</Form.Label>
                             <Select
                                 name="sceneItems"
                                 classNamePrefix="react-select"
@@ -202,20 +203,24 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
                         <Row>
                             <Form.Group as={Col} xs={4} controlId="timeout" className="mb-3">
                                 <Form.Label className="fw-semibold">Timeout (s)</Form.Label>
-                                <Form.Control
-                                    name="timeout"
-                                    type="number"
-                                    value={mapping.timeout}
-                                    onChange={handleTimeoutChange}
-                                    min={0}
-                                    style={{
-                                        maxWidth: '10em',
-                                        padding: '.75rem'
-                                    }}
-                                />
+                                <HoverToolTip text="Time in seconds before changing scene or hiding sources" placement="top" delay={250}>
+                                    <Form.Control
+                                        name="timeout"
+                                        type="number"
+                                        value={mapping.timeout}
+                                        onChange={handleTimeoutChange}
+                                        min={0}
+                                        style={{
+                                            maxWidth: '10em',
+                                            padding: '.75rem'
+                                        }}
+                                    />
+                                </HoverToolTip>
                             </Form.Group>
                             <Form.Group as={Col} xs={8} controlId="timeoutScene" className="mb-3">
-                                <Form.Label className="fw-semibold">Scene on Timeout</Form.Label>
+                                <HoverToolTip text="Scene to switch to on timeout" placement="top" delay={250}>
+                                    <Form.Label className="fw-semibold">Scene on Timeout</Form.Label>
+                                </HoverToolTip>
                                 <Select
                                     name="timeoutScene"
                                     unstyled
@@ -235,19 +240,23 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
                         <Row>
                             <Form.Group as={Col} controlId="chatCommand" className="mb-3">
                                 <Form.Label className="fw-semibold">Chat Command / Text</Form.Label>
-                                <Form.Control
-                                    name="prompt"
-                                    value={mapping.chatCommand}
-                                    style={{
-                                        padding: '.75rem'
-                                    }}
-                                    placeholder={"e.g. !lineup"}
-                                    onChange={handleUpdateChatCommand}
-                                    type="text"
-                                />
+                                <HoverToolTip text="Optionally trigger the redemption via chat command" placement="top" delay={250}>
+                                    <Form.Control
+                                        name="prompt"
+                                        value={mapping.chatCommand}
+                                        style={{
+                                            padding: '.75rem'
+                                        }}
+                                        placeholder={"e.g. !lineup"}
+                                        onChange={handleUpdateChatCommand}
+                                        type="text"
+                                    />
+                                </HoverToolTip>
                             </Form.Group>
                             <Form.Group as={Col} controlId="chatCommandBadges" className="mb-3">
-                                <Form.Label className="fw-semibold">Limit Command to</Form.Label>
+                                <HoverToolTip text="Limit chat redemptions to users with the given badges" placement="top" delay={250}>
+                                    <Form.Label className="fw-semibold">Limit Command to</Form.Label>
+                                </HoverToolTip>
                                 <Select
                                     name="chatCommandBadges"
                                     classNamePrefix="react-select"
@@ -268,9 +277,11 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
                     </Modal.Body>
                     <Modal.Footer>
                         <div className="flex-grow-1">
-                            <Button variant="danger" onClick={handleDelete}>
-                                Delete
-                            </Button>
+                            <HoverToolTip text="Remove mapping" placement="top" delay={250}>
+                                <Button variant="danger" onClick={handleDelete}>
+                                    Delete
+                                </Button>
+                            </HoverToolTip>
                         </div>
                         <Button variant="secondary" onClick={onClose}>
                             Close

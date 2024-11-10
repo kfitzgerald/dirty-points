@@ -1,4 +1,4 @@
-import logo from '../logo.svg';
+import logo from '../img/logo.svg';
 import './App.scss';
 import Loading from "../common/Loading";
 import {useDispatch, useSelector} from "react-redux";

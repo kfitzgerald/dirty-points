@@ -213,6 +213,12 @@ That's it. Really basic!
 
 # Changelog
 
+### v1.5.0 - 2024-11-09
+- Added filter search box to OBS scene list
+- Added tooltips to most clickable/input components
+- Changed scene cycle group edit prompt to a modal
+- Refactored image paths and removed unused components
+
 ### v1.4.0 - 2024-09-03
 - Redemption queues now continue to fill while full-stop is enabled (previously, redemptions were discarded)
 - When full-stop is disabled, redemption queues will resume processing rewards

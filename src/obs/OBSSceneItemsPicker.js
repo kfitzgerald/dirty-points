@@ -89,7 +89,7 @@ export function OBSSceneItemsPicker({ secondaryMapping = null, onAdd=null, onCha
                 />
             </Form.Group>
             <Form.Group as={Col} xs={6} controlId="sceneItems" className="mb-3">
-                <Form.Label className="fw-semibold">Scene Items</Form.Label>
+                <Form.Label className="fw-semibold">Scene Sources</Form.Label>
                 <Select
                     name="sceneItems"
                     classNamePrefix="react-select"

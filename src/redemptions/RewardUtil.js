@@ -1,3 +1,5 @@
+import {MAPPING_TYPES} from "../common/Constants";
+
 export function convertStringMapping(mapping) {
     return {
         sceneName: mapping,
@@ -6,7 +8,8 @@ export function convertStringMapping(mapping) {
         timeoutScene: '',
         chatCommand: '',
         chatCommandBadges: [],
-        secondaryItems: []
+        secondaryItems: [],
+        sourceFilters: []
     }
 }
 
@@ -18,6 +21,24 @@ export function getEmptyMapping() {
         timeoutScene: '',
         chatCommand: '',
         chatCommandBadges: [],
-        secondaryItems: []
+        secondaryItems: [],
+        sourceFilters: []
+    }
+}
+
+export function getMappingType(mapping) {
+    if (typeof mapping === 'string') mapping = convertStringMapping(mapping);
+
+    if (mapping.sourceFilters && mapping.sourceFilters.length > 0) {
+       return MAPPING_TYPES.FILTER_TOGGLE;
+
+    } else if (mapping.sceneName && mapping.sceneItems.length === 0) {
+        return MAPPING_TYPES.SCENE_CHANGE;
+
+    } else if (mapping.sceneName && mapping.sceneItems.length > 0) {
+        return MAPPING_TYPES.SOURCE_TOGGLE;
+
+    } else {
+        return null;
     }
 }

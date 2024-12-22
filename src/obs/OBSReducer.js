@@ -21,7 +21,11 @@ import {
     UPDATE_OBS_SCENE_ITEM_LIST,
     UPDATE_OBS_SCENE_LIST,
     UPDATE_SCENE_CYCLE_GROUP,
-    UPDATE_SCENE_CYCLE_GROUP_ITEM
+    UPDATE_SCENE_CYCLE_GROUP_ITEM,
+    UPDATE_OBS_SOURCE_FILTER_LIST,
+    FULL_OBS_SCENE_UPDATE_STATUS,
+    UPDATE_OBS_SOURCE_FILTER_LIST_BULK,
+    UPDATE_OBS_SOURCE_FILTER_ENABLED
 } from "./OBSActions";
 import {IMPORT_SETTINGS} from "../app/AppActions";
 
@@ -33,10 +37,12 @@ export const initialState = {
 
     // Status
     status: OBS_CONNECTION_STATUS.disconnected,
+    isSyncing: false,
     currentProgramSceneName: null,
     currentPreviewSceneName: null,
     scenes: [],
     sceneItems: {}, // key=sceneName, value=[sources]
+    filters: {}, // key=scene/sourceName, value=[filters]
 
     // Rotator
     cycleGroups: [], // { name: '', duration: 30, scenes: [ { sceneId: '', sceneName: '', duration: 0 } ] }
@@ -112,6 +118,12 @@ export default function OBSReducer(state = initialState, action) {
 
         //region Scene & Items state
 
+        case FULL_OBS_SCENE_UPDATE_STATUS:
+            return {
+                ...state,
+                isSyncing: !action.completed,
+            };
+
         case OBS_SCENE_LIST_CHANGED:
         case UPDATE_OBS_SCENE_LIST:
             return {
@@ -139,6 +151,51 @@ export default function OBSReducer(state = initialState, action) {
                 newState.currentProgramSceneName = action.currentProgramSceneName;
             }
             return newState;
+        }
+
+        //endregion
+
+        //region Filters state
+
+        case UPDATE_OBS_SOURCE_FILTER_LIST: {
+            const key = action.sourceName || action.sceneName;
+            return {
+                ...state,
+                filters: {
+                    ...state.filters,
+                    [key]: action.filters
+                }
+            }
+        }
+
+        case UPDATE_OBS_SOURCE_FILTER_LIST_BULK: {
+            return {
+                ...state,
+                filters: {
+                    ...state.filters,
+                    ...action.map
+                }
+            }
+        }
+
+        case UPDATE_OBS_SOURCE_FILTER_ENABLED: {
+            const filters = state.filters[action.sourceName] || [];
+            const filterIndex = filters.findIndex(f => f.filterName === action.filterName);
+            if (filterIndex < 0) return state; // filter not present, no change
+
+            // Replace the filter with a new reference
+            filters[filterIndex] = {
+                ...filters[filterIndex],
+                filterEnabled: action.enabled
+            };
+
+            return {
+                ...state,
+                filters: {
+                    ...state.filters,
+                    [action.sourceName]: filters
+                }
+            };
         }
 
         //endregion

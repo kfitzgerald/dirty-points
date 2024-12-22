@@ -247,9 +247,9 @@ export default function RedeemList() {
                                                bg={obs.status === OBS_CONNECTION_STATUS.connected ? 'success' : obs.status === OBS_CONNECTION_STATUS.connecting ? 'warning' : 'danger'}>{obs.status}</Badge>
                                 </h2>
                                 <div>
-                                    <HoverToolTip text={obs.status === OBS_CONNECTION_STATUS.connected ? 'Disconnect from OBS' : 'Connect to OBS'} placement="left" delay={250}>
-                                        <Button className="me-2" variant="secondary" onClick={handleOBSUpdate}><i
-        className={`bi ${obs.status === OBS_CONNECTION_STATUS.connected ? 'bi-pause-circle' : obs.status === OBS_CONNECTION_STATUS.disconnected ? 'bi-play-circle' : 'bi-hourglass'}`}/></Button>
+                                    <HoverToolTip text={obs.isSyncing ? 'Syncing with OBS...' : obs.status === OBS_CONNECTION_STATUS.connected ? 'Disconnect from OBS' : 'Connect to OBS'} placement="left" delay={250}>
+                                        <Button className="me-2" variant="secondary" disabled={obs.isSyncing} onClick={handleOBSUpdate}><i
+        className={`bi ${obs.isSyncing ? 'bi-arrow-clockwise icon-spin d-inline-block' : obs.status === OBS_CONNECTION_STATUS.connected ? 'bi-pause-circle' : obs.status === OBS_CONNECTION_STATUS.disconnected ? 'bi-play-circle' : 'bi-hourglass'}`}/></Button>
                                     </HoverToolTip>
                                 </div>
                             </div>

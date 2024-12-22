@@ -124,6 +124,26 @@ export function connectToOBS() {
                 dispatch(setFullStopEnabled(event.studioModeEnabled)); // Full stop on studio mode
             }
 
+            function onSourceFilterCreated(event) {
+                // https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#sourcefiltercreated
+                dispatch(fetchSourceFilterList(null, event.sourceName));
+            }
+
+            function onSourceFilterRemoved(event) {
+                // https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#sourcefilterremoved
+                dispatch(fetchSourceFilterList(null, event.sourceName));
+            }
+
+            function onSourceFilterNameChanged(event) {
+                // https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#sourcefilternamechanged
+                dispatch(fetchSourceFilterList(null, event.sourceName));
+            }
+
+            function onSourceFilterEnableStateChanged(event) {
+                // https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#sourcefilterenablestatechanged
+                dispatch(updateOBSSourceFilterEnabled(event.sourceName, event.filterName, event.filterEnabled));
+            }
+
             // Events
             obsWebSocket.on('CurrentProgramSceneChanged', onCurrentProgramSceneChanged);
             obsWebSocket.on('CurrentPreviewSceneChanged', onCurrentPreviewSceneChanged);
@@ -135,6 +155,10 @@ export function connectToOBS() {
             obsWebSocket.on('SceneItemRemoved', onSceneItemRemoved);
             obsWebSocket.on('SceneItemListReindexed', onSceneItemListReIndexed);
             obsWebSocket.on('StudioModeStateChanged', onStudioModeStateChanged);
+            obsWebSocket.on('SourceFilterCreated', onSourceFilterCreated);
+            obsWebSocket.on('SourceFilterRemoved', onSourceFilterRemoved);
+            obsWebSocket.on('SourceFilterNameChanged', onSourceFilterNameChanged);
+            obsWebSocket.on('SourceFilterEnableStateChanged', onSourceFilterEnableStateChanged);
 
             obsWebSocket.once('ExitStarted', () => {
                 console.info('OBS started shutdown');
@@ -176,6 +200,14 @@ export function disconnectFromOBS() {
 
 //region Scene List
 
+export const FULL_OBS_SCENE_UPDATE_STATUS = 'FULL_OBS_SCENE_UPDATE_STATUS';
+export function setFullOBSSceneUpdateStatus(completed) {
+    return {
+        type: FULL_OBS_SCENE_UPDATE_STATUS,
+        completed
+    };
+}
+
 export const UPDATE_OBS_SCENE_LIST = 'UPDATE_OBS_SCENE_LIST';
 export function updateOBSSceneList(scenes) {
     return {
@@ -191,6 +223,8 @@ export function fetchSceneList() {
 
         // Not connected, do nothing
         if (status !== OBS_CONNECTION_STATUS.connected) return;
+
+        dispatch(setFullOBSSceneUpdateStatus(false));
 
         try {
             const {
@@ -210,6 +244,9 @@ export function fetchSceneList() {
 
             // Sync studio mode state
             await dispatch(syncStudioMode());
+
+            // Flag that we're done syncing
+            dispatch(setFullOBSSceneUpdateStatus(true));
 
         } catch (err) {
             console.error('Failed to get the scene list');
@@ -267,9 +304,18 @@ export function fetchAllSceneItems() {
         try {
 
             // Fetch scene items
+            const sceneFilters = {};
+            let filters;
             for (let scene of [...scenes]) { // <-- important to break the relationship between state cuz it will break with updates
                 await dispatch(fetchSceneItemList(scene.sceneName));
+
+                // Fetch scene filters too
+                filters = await dispatch(fetchSourceFilterList(scene.sceneName, null, false));
+                sceneFilters[scene.sceneName] = filters;
             }
+
+            // Dispatch bulk update
+            dispatch(updateOBSSourceFilterListBulk(sceneFilters))
 
         } catch (err) {
             console.error('Failed to get the scene item list');
@@ -295,6 +341,20 @@ export function fetchSceneItemList(sceneName) {
             });
 
             dispatch(updateOBSSceneItemList(sceneName, sceneItems));
+
+            // For each source, get filters
+            let filters;
+            const sourceFilters = {};
+            for (let source of sceneItems) {
+                if (!sourceFilters[source.sourceName]) {
+                    filters = await dispatch(fetchSourceFilterList(sceneName, source.sourceName, false));
+                    sourceFilters[source.sourceName] = filters;
+                }
+            }
+
+            // Bulk update redux in one go
+            dispatch(updateOBSSourceFilterListBulk(sourceFilters));
+
             return sceneItems;
 
         } catch (err) {
@@ -302,6 +362,87 @@ export function fetchSceneItemList(sceneName) {
             dispatch(updateOBSError(err));
         }
 
+    };
+}
+
+//endregion
+
+//region Filters
+
+export const UPDATE_OBS_SOURCE_FILTER_LIST = 'UPDATE_OBS_SOURCE_FILTER_LIST';
+export function updateOBSSourceFilterList(sceneName, sourceName, filters) {
+    return {
+        type: UPDATE_OBS_SOURCE_FILTER_LIST,
+        sceneName,
+        sourceName,
+        filters
+    };
+}
+
+export const UPDATE_OBS_SOURCE_FILTER_LIST_BULK = 'UPDATE_OBS_SOURCE_FILTER_LIST_BULK';
+export function updateOBSSourceFilterListBulk(map) {
+    return {
+        type: UPDATE_OBS_SOURCE_FILTER_LIST_BULK,
+        map
+    };
+}
+
+export const UPDATE_OBS_SOURCE_FILTER_ENABLED = 'UPDATE_OBS_SOURCE_FILTER_ENABLED';
+export function updateOBSSourceFilterEnabled(sourceName, filterName, enabled) {
+    return {
+        type: UPDATE_OBS_SOURCE_FILTER_ENABLED,
+        sourceName,
+        filterName,
+        enabled
+    };
+}
+
+export function fetchSourceFilterList(sceneName, sourceName=null, doDispatch=true) {
+    return async (dispatch, getState) => {
+        const {obs} = getState();
+        const {status} = obs;
+
+        // Not connected, do nothing
+        if (status !== OBS_CONNECTION_STATUS.connected) return;
+
+        try {
+            const { filters } = await obsWebSocket.call('GetSourceFilterList', {
+                sourceName: !sourceName ? sceneName : sourceName, // get filters for scene if source is missing
+                // sourceUuid
+            });
+
+            // Suppress dispatch if requested
+            if (doDispatch) dispatch(updateOBSSourceFilterList(sceneName, sourceName, filters));
+
+            return filters;
+
+        } catch (err) {
+            console.error('Failed to get the scene filter list', err);
+            dispatch(updateOBSError(err));
+        }
+
+    };
+}
+
+export function setSourceFilterEnabled(sourceName, filterName, filterEnabled) {
+    return async (dispatch, getState) => {
+        const {obs} = getState();
+        const {status} = obs;
+
+        // Not connected, do nothing
+        if (status !== OBS_CONNECTION_STATUS.connected) return;
+
+        try {
+            console.info('Toggling source filter %s -> %s: %s', sourceName, filterName, filterEnabled);
+            await obsWebSocket.call('SetSourceFilterEnabled', {
+                sourceName,
+                filterName,
+                filterEnabled
+            });
+        } catch (err) {
+            console.error('Failed to set filter enabled', { sourceName, filterName, err });
+            dispatch(updateOBSError(err));
+        }
     };
 }
 

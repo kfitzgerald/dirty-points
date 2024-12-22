@@ -4,7 +4,7 @@ import {useDispatch} from "react-redux";
 import {clearCreateUpdateErrors} from "./RedemptionActions";
 import RewardModal from "./RewardModal";
 
-export default function CreateRewardButton() {
+export default function CreateRewardButton({ disabled=false }) {
     const [show, setShow] = useState(false);
     const dispatch = useDispatch();
 
@@ -17,7 +17,7 @@ export default function CreateRewardButton() {
 
     return (
         <>
-            <Button onClick={handleShow}><i className="bi bi-plus-circle"/> Create Reward</Button>
+            <Button onClick={handleShow} disabled={disabled}><i className="bi bi-plus-circle"/> Create Reward</Button>
             <RewardModal show={show} onClose={handleClose} reward={null} />
         </>
     )

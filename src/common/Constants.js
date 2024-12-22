@@ -24,4 +24,10 @@ export const CHAT_BADGES = {
     // Turbo: 'turbo',
     // Founder: 'founder',
     // Partner: 'partner'
-}
+};
+
+export const MAPPING_TYPES = {
+    SCENE_CHANGE: 'scene-change',
+    SOURCE_TOGGLE: 'source-toggle',
+    FILTER_TOGGLE: 'filter-toggle'
+};

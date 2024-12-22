@@ -1,6 +1,10 @@
 import {
     CLEAR_CREATE_UPDATE_ERRORS,
-    DELETE_REDEMPTION_MAPPING, DEQUEUE_SCENE_REWARD, DEQUEUE_SOURCE_REWARD,
+    DELETE_REDEMPTION_MAPPING,
+    DEQUEUE_FILTER_REWARD,
+    DEQUEUE_SCENE_REWARD,
+    DEQUEUE_SOURCE_REWARD,
+    ENQUEUE_FILTER_REWARD,
     ENQUEUE_SCENE_REWARD,
     ENQUEUE_SOURCE_REWARD,
     RECEIVE_CREATE_REWARD_ERROR,
@@ -50,6 +54,7 @@ export const initialState = {
     // queues for processing redemptions
     sceneRedemptionQueue: [],
     sourceRedemptionQueue: [],
+    filterRedemptionQueue: [],
 
     // shortcut for making chat command inspection easier
     chatMappings: [] // filtered list of chat commands
@@ -83,6 +88,12 @@ export default function RedemptionReducer(state = initialState, action) {
                 sourceRedemptionQueue: [...state.sourceRedemptionQueue, action.rewardId]
             };
 
+        case ENQUEUE_FILTER_REWARD:
+            return {
+                ...state,
+                filterRedemptionQueue: [...state.filterRedemptionQueue, action.rewardId]
+            };
+
         case DEQUEUE_SCENE_REWARD:
             // option to filter the first action.rewardId out of the queue, but skip for now unless it's a problem
             return {
@@ -95,6 +106,13 @@ export default function RedemptionReducer(state = initialState, action) {
             return {
                 ...state,
                 sourceRedemptionQueue: state.sourceRedemptionQueue.slice(1) // pop the first item off
+            };
+
+        case DEQUEUE_FILTER_REWARD:
+            // option to filter the first action.rewardId out of the queue, but skip for now unless it's a problem
+            return {
+                ...state,
+                filterRedemptionQueue: state.filterRedemptionQueue.slice(1) // pop the first item off
             };
 
         //endregion

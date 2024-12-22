@@ -1,6 +1,7 @@
 import {Button} from "react-bootstrap";
-import {convertStringMapping} from "./RewardUtil";
+import {getMappingType} from "./RewardUtil";
 import HoverToolTip from "../common/HoverToolTip";
+import {MAPPING_TYPES} from "../common/Constants";
 
 export default function RewardMappingButton({ reward, mapping, onClick }) {
 
@@ -8,17 +9,26 @@ export default function RewardMappingButton({ reward, mapping, onClick }) {
     let mappingStatus = 'text-secondary'; // not set
 
     if (mapping) {
-        if (typeof mapping === 'string') mapping = convertStringMapping(mapping);
+        const type = getMappingType(mapping);
+        switch (type) {
+            case MAPPING_TYPES.FILTER_TOGGLE:
+                mappingDescription = <><i className="bi bi-eye-slash-fill"/> Filters: {mapping.sourceFilters.reduce((a, c) => a+c.filterNames.length, 0)}</>;
+                mappingStatus = 'text-success';
+                break;
 
-        if (mapping.sceneName && mapping.sceneItems.length === 0) {
-            mappingDescription = <><i className="bi bi-image-fill"/> {mapping.sceneName}</>;
-            mappingStatus = 'text-success';
-        } else if (mapping.sceneName && mapping.sceneItems.length > 0) {
-            mappingDescription = <><i className="bi bi-toggles"/> {mapping.sceneName} ({mapping.sceneItems.length} items)</>;
-            mappingStatus = 'text-success';
-        } else {
-            mappingDescription = <em data-id={reward.id}>(not mapped correctly)</em>;
-            mappingStatus = 'text-warning';
+            case MAPPING_TYPES.SCENE_CHANGE:
+                mappingDescription = <><i className="bi bi-image-fill"/> {mapping.sceneName}</>;
+                mappingStatus = 'text-success';
+                break;
+
+            case MAPPING_TYPES.SOURCE_TOGGLE:
+                mappingDescription = <><i className="bi bi-toggles"/> {mapping.sceneName} ({mapping.sceneItems.length} items)</>;
+                mappingStatus = 'text-success';
+                break;
+
+            default:
+                mappingDescription = <em data-id={reward.id}>(not mapped correctly)</em>;
+                mappingStatus = 'text-warning';
         }
 
     } else {

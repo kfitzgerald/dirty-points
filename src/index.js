@@ -10,6 +10,7 @@ import {SceneQueue} from "./redemptions/SceneQueue";
 import {SourceQueue} from "./redemptions/SourceQueue";
 import SceneCycleController from "./obs/SceneCycleController";
 import * as Sentry from "@sentry/react";
+import {FilterQueue} from "./redemptions/FilterQueue";
 
 // Report errors in production only
 if (process.env.NODE_ENV && process.env.NODE_ENV !== 'development') {
@@ -25,6 +26,7 @@ const store = configureStore(preloadedState);
 // Setup reward processing queues
 export const sceneQueue = new SceneQueue(store);
 export const sourceQueue = new SourceQueue(store);
+export const filterQueue = new FilterQueue(store);
 export const cycleController = new SceneCycleController(store);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -34,6 +36,7 @@ root.render(
           <RedemptionQueueContext.Provider value={{
               sceneQueue,
               sourceQueue,
+              filterQueue,
               cycleController
           }}>
               <App />

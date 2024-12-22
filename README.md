@@ -213,6 +213,11 @@ That's it. Really basic!
 
 # Changelog
 
+### v1.6.0 - 2024-12-21 - Source filter toggling!
+- Changed the OBS mapping modal interface (can now easily pick what you want the mapping to do)
+- Added new source filter toggling option
+- Added source filter redemption queue
+
 ### v1.5.0 - 2024-11-09
 - Added filter search box to OBS scene list
 - Added tooltips to most clickable/input components

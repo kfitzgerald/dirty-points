@@ -2,7 +2,8 @@ import {ApiClient} from '@twurple/api';
 import {EventSubWsListener} from '@twurple/eventsub-ws';
 import { StaticAuthProvider } from '@twurple/auth';
 import {apiDelete, apiGet, apiPatch, apiPost, CLIENT_ID} from "../common/API";
-import {convertStringMapping} from "./RewardUtil";
+import {getMappingType} from "./RewardUtil";
+import {MAPPING_TYPES} from "../common/Constants";
 
 //region Twitch WebSocket Actions
 
@@ -166,6 +167,14 @@ export function enqueueSourceReward(rewardId) {
     };
 }
 
+export const ENQUEUE_FILTER_REWARD = 'ENQUEUE_FILTER_REWARD';
+export function enqueueFilterReward(rewardId) {
+    return {
+        type: ENQUEUE_FILTER_REWARD,
+        rewardId
+    };
+}
+
 export const DEQUEUE_SCENE_REWARD = 'DEQUEUE_SCENE_REWARD';
 export function dequeueSceneReward(rewardId) {
     return {
@@ -178,6 +187,14 @@ export const DEQUEUE_SOURCE_REWARD = 'DEQUEUE_SOURCE_REWARD';
 export function dequeueSourceReward(rewardId) {
     return {
         type: DEQUEUE_SOURCE_REWARD,
+        rewardId
+    };
+}
+
+export const DEQUEUE_FILTER_REWARD = 'DEQUEUE_FILTER_REWARD';
+export function dequeueFilterReward(rewardId) {
+    return {
+        type: DEQUEUE_FILTER_REWARD,
         rewardId
     };
 }
@@ -210,6 +227,20 @@ export function getNextQueuedSourceReward() {
     }
 }
 
+export function getNextQueuedFilterReward() {
+    return async (dispatch, getState) => {
+        const {redemptions} = getState();
+        const { filterRedemptionQueue } = redemptions;
+        const task = filterRedemptionQueue[0];
+
+        // Update state
+        if (task) await dispatch(dequeueFilterReward(task));
+
+        // Return the task
+        return task;
+    }
+}
+
 export function executeReward(rewardId) {
     return async (dispatch, getState) => {
         const {redemptions} = getState();
@@ -221,20 +252,14 @@ export function executeReward(rewardId) {
             return;
         }
 
-        if (typeof mapping === 'string') mapping = convertStringMapping(mapping);
-
-        if (mapping.sceneName && mapping.sceneItems.length === 0) {
-            // Enqueue scene reward
-            await dispatch(enqueueSceneReward(rewardId));
-
-        } else if (mapping.sceneName && mapping.sceneItems.length > 0) {
-            // Enqueue source reward
-            await dispatch(enqueueSourceReward(rewardId));
-
-        } else {
-            // Unknown
-            console.warn('executeReward: Invalid mapping - dunno how to handle', mapping);
+        switch (getMappingType(mapping)) {
+            case MAPPING_TYPES.FILTER_TOGGLE: return await dispatch(enqueueFilterReward(rewardId));
+            case MAPPING_TYPES.SCENE_CHANGE:  return await dispatch(enqueueSceneReward(rewardId));
+            case MAPPING_TYPES.SOURCE_TOGGLE: return await dispatch(enqueueSourceReward(rewardId));
+            default:
+                console.warn('executeReward: Invalid mapping - dunno how to handle', mapping);
         }
+
     };
 }
 

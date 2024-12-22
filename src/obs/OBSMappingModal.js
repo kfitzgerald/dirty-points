@@ -159,7 +159,7 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
 
     const handleTypeChange = useCallback((eventKey) => {
         setDesiredType(eventKey)
-    }, [dispatch])
+    }, [])
 
     const beforeClose = useCallback(() => {
         // clean up properties based on desired type
@@ -190,6 +190,7 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
                     sourceFilters: []
                 }));
                 break;
+            default:
         }
 
         onClose();

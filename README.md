@@ -213,6 +213,9 @@ That's it. Really basic!
 
 # Changelog
 
+### v1.6.1 - 2024-12-28 - Timeout functionality change
+- Only disable sources and filters when timeout/duration is above zero
+
 ### v1.6.0 - 2024-12-21 - Source filter toggling!
 - Changed the OBS mapping modal interface (can now easily pick what you want the mapping to do)
 - Added new source filter toggling option

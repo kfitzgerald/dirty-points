@@ -23,8 +23,8 @@ export class FilterQueue extends RedemptionQueue {
 
     async _execute(rewardId) {
         const { getState, dispatch } = this.redux;
-        const {redemptions} = getState();
-        const {mappings} = redemptions;
+        const { redemptions } = getState();
+        const { mappings } = redemptions;
 
         // Get the mapping for the reward
         let mapping = mappings[rewardId];
@@ -48,13 +48,17 @@ export class FilterQueue extends RedemptionQueue {
             }
         }
 
-        // Wait for the timeout
-        await this._cooldown((timeout || this.defaultHideTimeout)*1000);
+        // If no timeout, leave in the enabled state
+        if (timeout > 0) {
 
-        // Hide filters for each source
-        for (let sourceFilter of safeFilters) {
-            for (let filterName of sourceFilter.filterNames) {
-                await dispatch(setSourceFilterEnabled(sourceFilter.sourceName, filterName, false));
+            // Wait for the timeout
+            await this._cooldown((timeout || this.defaultHideTimeout) * 1000);
+
+            // Hide filters for each source
+            for (let sourceFilter of safeFilters) {
+                for (let filterName of sourceFilter.filterNames) {
+                    await dispatch(setSourceFilterEnabled(sourceFilter.sourceName, filterName, false));
+                }
             }
         }
 

@@ -54,18 +54,22 @@ export class SourceQueue extends RedemptionQueue {
             }
         }
 
-        // Wait for the timeout
-        await this._cooldown((timeout || this.defaultHideTimeout)*1000);
+        // Only disable sources if timeout is set
+        if (timeout > 0) {
 
-        // Hide each selected source from scene
-        for (let sourceItemId of sourceItemIds) {
-            await dispatch(setSceneItemEnabled(sceneName, sourceItemId, false));
-        }
+            // Wait for the timeout
+            await this._cooldown((timeout || this.defaultHideTimeout) * 1000);
 
-        // Hide secondary sources too
-        for (let secondaryItem of auxItems) {
-            for (let sourceItemId of secondaryItem.sceneItems) {
-                await dispatch(setSceneItemEnabled(secondaryItem.sceneName, sourceItemId, false));
+            // Hide each selected source from scene
+            for (let sourceItemId of sourceItemIds) {
+                await dispatch(setSceneItemEnabled(sceneName, sourceItemId, false));
+            }
+
+            // Hide secondary sources too
+            for (let secondaryItem of auxItems) {
+                for (let sourceItemId of secondaryItem.sceneItems) {
+                    await dispatch(setSceneItemEnabled(secondaryItem.sceneName, sourceItemId, false));
+                }
             }
         }
 

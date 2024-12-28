@@ -287,6 +287,7 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
                                                 onChange={handleUpdateTimeoutSceneName}
                                             />
                                         </Form.Group>
+                                        <Form.Text>When duration is set to <code>0</code>, or the timeout scene is not selected, the scene will not be changed after redemption.</Form.Text>
                                     </Row>
                                 </Accordion.Body>
                             </Accordion.Item>
@@ -363,6 +364,7 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
                                                 />
                                             </HoverToolTip>
                                         </Form.Group>
+                                        <Form.Text>When duration is set to <code>0</code>, sources will be enabled and <em>not disabled</em>.</Form.Text>
                                     </Row>
                                 </Accordion.Body>
                             </Accordion.Item>
@@ -396,6 +398,7 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
                                                 />
                                             </HoverToolTip>
                                         </Form.Group>
+                                        <Form.Text>When duration is set to <code>0</code>, filters will be enabled and <em>not disabled</em>.</Form.Text>
                                     </Row>
                                 </Accordion.Body>
                             </Accordion.Item>

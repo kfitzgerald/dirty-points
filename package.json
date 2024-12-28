@@ -1,6 +1,6 @@
 {
   "name": "dirty-points",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "private": true,
   "dependencies": {
     "@sentry/react": "^8.20.0",

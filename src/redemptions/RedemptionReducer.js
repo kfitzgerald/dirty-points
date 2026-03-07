@@ -1,9 +1,11 @@
 import {
     CLEAR_CREATE_UPDATE_ERRORS,
     DELETE_REDEMPTION_MAPPING,
+    DEQUEUE_ACTION_REWARD,
     DEQUEUE_FILTER_REWARD,
     DEQUEUE_SCENE_REWARD,
     DEQUEUE_SOURCE_REWARD,
+    ENQUEUE_ACTION_REWARD,
     ENQUEUE_FILTER_REWARD,
     ENQUEUE_SCENE_REWARD,
     ENQUEUE_SOURCE_REWARD,
@@ -55,6 +57,7 @@ export const initialState = {
     sceneRedemptionQueue: [],
     sourceRedemptionQueue: [],
     filterRedemptionQueue: [],
+    actionRedemptionQueue: [],
 
     // shortcut for making chat command inspection easier
     chatMappings: [] // filtered list of chat commands
@@ -94,6 +97,12 @@ export default function RedemptionReducer(state = initialState, action) {
                 filterRedemptionQueue: [...state.filterRedemptionQueue, action.rewardId]
             };
 
+        case ENQUEUE_ACTION_REWARD:
+            return {
+                ...state,
+                actionRedemptionQueue: [...state.actionRedemptionQueue, action.rewardId]
+            };
+
         case DEQUEUE_SCENE_REWARD:
             // option to filter the first action.rewardId out of the queue, but skip for now unless it's a problem
             return {
@@ -115,6 +124,13 @@ export default function RedemptionReducer(state = initialState, action) {
                 filterRedemptionQueue: state.filterRedemptionQueue.slice(1) // pop the first item off
             };
 
+        case DEQUEUE_ACTION_REWARD:
+            // option to filter the first action.rewardId out of the queue, but skip for now unless it's a problem
+            return {
+                ...state,
+                actionRedemptionQueue: state.actionRedemptionQueue.slice(1) // pop the first item off
+            };
+
         //endregion
 
         //region Twitch reward list state
@@ -134,8 +150,8 @@ export default function RedemptionReducer(state = initialState, action) {
                 lastError: false,
                 didInvalidate: false,
                 lastUpdated: action.lastUpdated,
-                rewards: action.manageable ? state.rewards : action.data,
-                manageableRewards: action.manageable ? action.data : state.manageableRewards
+                rewards: [ ...(action.manageable ? state.rewards : action.data) ],
+                manageableRewards: [ ...(action.manageable ? action.data : state.manageableRewards) ]
             };
 
         case UPDATE_TWITCH_ERROR:
@@ -164,6 +180,13 @@ export default function RedemptionReducer(state = initialState, action) {
                 isUpdating: false,
                 lastUpdateError: false,
                 lastUpdated: action.lastUpdated,
+                rewards: state.rewards.map(r => {
+                    if (r.id === action.id) {
+                        return action.data;
+                    } else {
+                        return r;
+                    }
+                }),
                 manageableRewards: state.manageableRewards.map(r => {
                     if (r.id === action.id) {
                         return action.data;
@@ -241,6 +264,7 @@ export default function RedemptionReducer(state = initialState, action) {
                 isCreating: false,
                 lastCreateError: false,
                 lastUpdated: action.lastUpdated,
+                rewards: state.rewards.concat(action.data),
                 manageableRewards: state.manageableRewards.concat(action.data)
             };
         }
@@ -269,6 +293,7 @@ export default function RedemptionReducer(state = initialState, action) {
                 isDeleting: false,
                 lastUpdateError: false,
                 lastUpdated: action.lastUpdated,
+                rewards: state.rewards.filter(r => r.id !== action.id),
                 manageableRewards: state.manageableRewards.filter(r => r.id !== action.id)
             };
         }

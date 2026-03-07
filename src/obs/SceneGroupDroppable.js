@@ -10,6 +10,7 @@ import HoverToolTip from "../common/HoverToolTip";
 export default function SceneGroupDroppable({ group, groupIndex }) {
     const [ enabled, setEnabled ] = useState(false);
     const currentProgramSceneName = useSelector(state => state.obs.currentProgramSceneName);
+    useSelector(state => state.obs.cycleGroups);
     const dispatch = useDispatch();
 
     useEffect(() => {

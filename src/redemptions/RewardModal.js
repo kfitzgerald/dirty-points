@@ -8,9 +8,12 @@ import HoverToolTip from "../common/HoverToolTip";
 
 export default function RewardModal({ show, onClose, reward=null }) {
     const dispatch = useDispatch();
-    const { lastCreateError, lastUpdateError, rewards } = useSelector(state => state.redemptions);
+    const lastCreateError = useSelector(state => state.redemptions.lastCreateError);
+    const lastUpdateError = useSelector(state => state.redemptions.lastUpdateError);
+    const manageableRewards = useSelector(state => state.redemptions.manageableRewards);
 
-    const isReadOnly = reward && rewards.includes(reward);
+    const isManageable = !reward || manageableRewards.includes(reward);
+    const isReadOnly = !isManageable;
 
     const onSubmit = useCallback(async (data) => {
 

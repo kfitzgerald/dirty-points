@@ -1,4 +1,5 @@
 import OBSWebSocket from "obs-websocket-js";
+import moment from "moment";
 import {setFullStopEnabled} from "../app/AppActions";
 
 //region Websocket
@@ -144,6 +145,31 @@ export function connectToOBS() {
                 dispatch(updateOBSSourceFilterEnabled(event.sourceName, event.filterName, event.filterEnabled));
             }
 
+            function onReplayBufferStateChanged(event) {
+                // https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#replaybufferstatechanged
+                dispatch(updateOBSReplayBufferStatus(event))
+            }
+
+            function onReplayBufferSaved(event) {
+                // https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#replaybuffersaved
+                dispatch(replayBufferSaved(event.savedReplayPath))
+            }
+
+            function onStreamStateChanged(event) {
+                // https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#streamstatechanged
+                dispatch(updateOBSStreamStatus(event))
+            }
+
+            function onSceneTransitionStarted(/*event*/) {
+                // https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#scenetransitionstarted
+                dispatch(setTransitioningStatus(true))
+            }
+
+            function onSceneTransitionEnded(/*event*/) {
+                // https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#scenetransitionended
+                dispatch(setTransitioningStatus(false))
+            }
+
             // Events
             obsWebSocket.on('CurrentProgramSceneChanged', onCurrentProgramSceneChanged);
             obsWebSocket.on('CurrentPreviewSceneChanged', onCurrentPreviewSceneChanged);
@@ -159,6 +185,11 @@ export function connectToOBS() {
             obsWebSocket.on('SourceFilterRemoved', onSourceFilterRemoved);
             obsWebSocket.on('SourceFilterNameChanged', onSourceFilterNameChanged);
             obsWebSocket.on('SourceFilterEnableStateChanged', onSourceFilterEnableStateChanged);
+            obsWebSocket.on('ReplayBufferStateChanged', onReplayBufferStateChanged);
+            obsWebSocket.on('ReplayBufferSaved', onReplayBufferSaved);
+            obsWebSocket.on('StreamStateChanged', onStreamStateChanged);
+            obsWebSocket.on('SceneTransitionStarted', onSceneTransitionStarted);
+            obsWebSocket.on('SceneTransitionEnded', onSceneTransitionEnded);
 
             obsWebSocket.once('ExitStarted', () => {
                 console.info('OBS started shutdown');
@@ -166,7 +197,7 @@ export function connectToOBS() {
                 obsWebSocket.off('CurrentPreviewSceneChanged', onCurrentPreviewSceneChanged);
             });
 
-            // update the scene list on connect
+            // update all the obs info on connect
             dispatch(fetchSceneList());
 
         } catch (error) {
@@ -244,6 +275,18 @@ export function fetchSceneList() {
 
             // Sync studio mode state
             await dispatch(syncStudioMode());
+
+            // Sync stream status
+            await dispatch(getStreamStatus());
+
+            // Sync replay buffer status
+            await dispatch(getReplayBufferStatus());
+
+            // Sync profile settings
+            await dispatch(getProfileSettings());
+
+            // Retrieve recording path
+            await dispatch(getRecordingPath());
 
             // Flag that we're done syncing
             dispatch(setFullOBSSceneUpdateStatus(true));
@@ -678,5 +721,301 @@ export function setSceneCyclePaused(paused) {
         paused
     };
 }
+
+export const SET_TRANSITIONING_STATUS = 'SET_TRANSITIONING_STATUS';
+export function setTransitioningStatus(enabled) {
+    return {
+        type: SET_TRANSITIONING_STATUS,
+        enabled
+    };
+}
+
+//endregion
+
+//region Replay Buffer
+
+// ✅ GetStreamStatus -> { outputActive: boolean, outputState: 'starting' | 'started' | 'stopping' | 'stopped' }
+// ✅ GetReplayBufferStatus -> { outputActive: boolean }
+// ✅ ToggleReplayBuffer -> no args, toggles on/off -> { outputActive: boolean }
+// ✅ StartReplayBuffer -> no response
+// ✅ StopReplayBuffer -> no response
+// ✅ SaveReplayBuffer -> no response
+// GetLastReplayBufferReplay -> { savedReplayPath: string }
+// ✅ GetProfileParameter -> { parameterCategory: string, parameterName: string} -> { parameterValue: string, defaultParameterValue: string }
+// ✅ SetProfileParameter -> { parameterCategory: string, parameterName: string, parameterValue: any }
+
+export const UPDATE_OBS_STREAM_STATUS = 'UPDATE_OBS_STREAM_STATUS';
+export function updateOBSStreamStatus(status) {
+    return {
+        type: UPDATE_OBS_STREAM_STATUS,
+        status
+    };
+}
+
+export function getStreamStatus() {
+    return async (dispatch, getState) => {
+        const {obs} = getState();
+        const {status} = obs;
+
+        // Not connected, do nothing
+        if (status !== OBS_CONNECTION_STATUS.connected) return;
+
+        try {
+            const status= await obsWebSocket.call('GetStreamStatus');
+
+            dispatch(updateOBSStreamStatus(status));
+
+        } catch (err) {
+            console.error('Failed to get the stream status');
+            dispatch(updateOBSError(err));
+        }
+
+    };
+}
+
+export const UPDATE_OBS_REPLAY_BUFFER_STATUS = 'UPDATE_OBS_REPLAY_BUFFER_STATUS';
+export function updateOBSReplayBufferStatus(status) {
+    return {
+        type: UPDATE_OBS_REPLAY_BUFFER_STATUS,
+        status
+    };
+}
+
+export function getReplayBufferStatus() {
+    return async (dispatch, getState) => {
+        const {obs} = getState();
+        const {status} = obs;
+
+        // Not connected, do nothing
+        if (status !== OBS_CONNECTION_STATUS.connected) return;
+
+        try {
+            const status = await obsWebSocket.call('GetReplayBufferStatus');
+
+            dispatch(updateOBSReplayBufferStatus(status));
+
+        } catch (err) {
+            console.error('Failed to get the replay buffer status');
+            dispatch(updateOBSError(err));
+        }
+
+    };
+}
+
+export const UPDATE_OBS_PROFILE_SETTINGS = 'UPDATE_OBS_PROFILE_SETTINGS';
+export function updateOBSProfileSettings(settings) {
+    return {
+        type: UPDATE_OBS_PROFILE_SETTINGS,
+        settings
+    };
+}
+
+export const UPDATE_OBS_RECORDING_PATH = 'UPDATE_OBS_RECORDING_PATH';
+export function updateOBSRecordingPath(recordDirectory) {
+    return {
+        type: UPDATE_OBS_RECORDING_PATH,
+        recordDirectory
+    };
+}
+
+export const REPLAY_BUFFER_SAVED = 'REPLAY_BUFFER_SAVED';
+export function replayBufferSaved(savedReplayPath) {
+    return {
+        type: REPLAY_BUFFER_SAVED,
+        savedReplayPath
+    };
+}
+
+export function getProfileSettings() {
+    return async (dispatch, getState) => {
+        const {obs} = getState();
+        const {status} = obs;
+
+        // Not connected, do nothing
+        if (status !== OBS_CONNECTION_STATUS.connected) return;
+
+        try {
+            const outputMode = await obsWebSocket.call('GetProfileParameter', { parameterCategory: 'Output', parameterName: 'Mode' })
+            const parameterCategory = outputMode.parameterValue === 'Advanced' ? 'AdvOut' : 'SimpleOutput';
+            const replayBufferEnabled = await obsWebSocket.call('GetProfileParameter', { parameterCategory, parameterName: 'RecRB' })
+            const replayBufferTime = await obsWebSocket.call('GetProfileParameter', { parameterCategory, parameterName: 'RecRBTime' })
+            const replayBufferSize = await obsWebSocket.call('GetProfileParameter', { parameterCategory, parameterName: 'RecRBSize' })
+            const replayBufferPrefix = await obsWebSocket.call('GetProfileParameter', { parameterCategory, parameterName: 'RecRBPrefix' })
+
+            const getCurrentValue = (param, formatter = (val) => val) => {
+                if (param.parameterValue !== null) {
+                    return formatter(param.parameterValue)
+                } else if (param.defaultParameterValue !== null) {
+                    return formatter(param.defaultParameterValue)
+                } else {
+                    return null;
+                }
+            }
+
+            console.log('get', { replayBufferEnabled, value: getCurrentValue(replayBufferEnabled, Boolean) })
+
+            dispatch(updateOBSProfileSettings({
+                outputMode: getCurrentValue(outputMode, String),
+                replayBufferEnabled: getCurrentValue(replayBufferEnabled, (v) => v === 'true'),
+                replayBufferTime: getCurrentValue(replayBufferTime, Number),
+                replayBufferSize: getCurrentValue(replayBufferSize, Number),
+                replayBufferPrefix: getCurrentValue(replayBufferPrefix, String),
+            }));
+
+        } catch (err) {
+            console.error('Failed to get obs profile settings');
+            dispatch(updateOBSError(err));
+        }
+
+    };
+}
+
+export function setProfileSettings(settings) {
+    return async (dispatch, getState) => {
+        const {obs} = getState();
+        const {status, profileSettings} = obs;
+
+        // Not connected, do nothing
+        if (status !== OBS_CONNECTION_STATUS.connected) return;
+
+        // No output mode, can't set any settings reliably
+        if (!profileSettings.outputMode) return;
+
+        try {
+            const parameterCategory = profileSettings.outputMode === 'Advanced' ? 'AdvOut' : 'SimpleOutput';
+            const keys = new Set(Object.keys(settings));
+            if (keys.has('replayBufferEnabled')) await obsWebSocket.call('SetProfileParameter', { parameterCategory, parameterName: 'RecRB', parameterValue: String(settings.replayBufferEnabled) });
+            if (keys.has('replayBufferTime')) await obsWebSocket.call('SetProfileParameter', { parameterCategory, parameterName: 'RecRBTime', parameterValue: String(settings.replayBufferTime) });
+            if (keys.has('replayBufferSize')) await obsWebSocket.call('SetProfileParameter', { parameterCategory, parameterName: 'RecRBSize', parameterValue: String(settings.replayBufferSize) });
+            if (keys.has('replayBufferPrefix')) await obsWebSocket.call('SetProfileParameter', { parameterCategory, parameterName: 'RecRBPrefix', parameterValue: String(settings.replayBufferPrefix) });
+
+            console.log('set', { replayBufferEnabled: String(settings.replayBufferEnabled) })
+
+            // Delay for a second for OBS to apply the settings before refreshing, otherwise we might get the old value back
+            // await new Promise(resolve => setTimeout(resolve, 1000));
+            await dispatch(getProfileSettings()); // Refresh settings after change
+
+        } catch (err) {
+            console.error('Failed to set obs profile settings');
+            dispatch(updateOBSError(err));
+        }
+
+    };
+}
+
+export function toggleReplayBufferEnabled(enabled = null) {
+    return async (dispatch, getState) => {
+        const {obs} = getState();
+        const {status} = obs;
+
+        // Not connected, do nothing
+        if (status !== OBS_CONNECTION_STATUS.connected) return;
+
+        try {
+            // Do the action as provided
+            if (enabled === null) {
+                // Toggle whatever the current state is
+                await obsWebSocket.call('ToggleReplayBuffer');
+            } else {
+                await obsWebSocket.call(enabled ? 'StartReplayBuffer' : 'StopReplayBuffer');
+            }
+
+        } catch (err) {
+            console.error('Failed to update the replay buffer status');
+            dispatch(updateOBSError(err));
+        }
+
+    };
+}
+
+let screenshotCounter = 0;
+
+export function saveScreenshot() {
+    return async (dispatch, getState) => {
+        const { obs } = getState();
+        const { status, currentProgramSceneName, recordDirectory } = obs;
+
+        // Not connected, do nothing
+        if (status !== OBS_CONNECTION_STATUS.connected) return;
+
+        try {
+
+            // TODO: make filename scheme configurable
+            const filename = moment().format('YYYY-MM-DD_HH-mm-ss') + `-screenshot-${++screenshotCounter}.png`;
+
+            // TODO: this could be updated to take screenshots of arbitrary sources instead of just the current scene, but for now this is good enough for mvp
+            const payload = {
+                sourceName: currentProgramSceneName,
+                imageFormat: 'png',
+                imageFilePath: `${recordDirectory}/${filename}`, // if null, OBS will generate a file path and return it in the response
+            }
+
+            await obsWebSocket.call('SaveSourceScreenshot', payload);
+
+            console.log('Screenshot saved to', payload.imageFilePath);
+
+        } catch (err) {
+            console.error('Failed to save screenshot', err);
+            dispatch(updateOBSError(err));
+        }
+
+    };
+}
+
+export function saveReplayBuffer() {
+    return async (dispatch, getState) => {
+        const { obs } = getState();
+        const { status } = obs;
+
+        // Not connected, do nothing
+        if (status !== OBS_CONNECTION_STATUS.connected) return;
+
+        try {
+
+            await obsWebSocket.call('SaveReplayBuffer');
+
+            console.log('Replay saved');
+
+        } catch (err) {
+            console.error('Failed to save replay buffer', err);
+            dispatch(updateOBSError(err));
+        }
+
+    };
+}
+
+export function getRecordingPath() {
+    return async (dispatch, getState) => {
+        const { obs } = getState();
+        const { status } = obs;
+
+        // Not connected, do nothing
+        if (status !== OBS_CONNECTION_STATUS.connected) return;
+
+        try {
+
+           const { recordDirectory } = await obsWebSocket.call('GetRecordDirectory');
+           dispatch(updateOBSRecordingPath(recordDirectory));
+
+        } catch (err) {
+            console.error('Failed to retrieve the obs recording path', err);
+            dispatch(updateOBSError(err));
+        }
+
+    };
+}
+
+// Get Profile Settings
+// {defaultParameterValue: 'Output', parameterValue: 'Mode'}
+// {defaultParameterValue: 'SimpleOutput', parameterValue: 'RecRB'} -> boolean
+// {defaultParameterValue: 'SimpleOutput', parameterValue: 'RecRBTime'} -> number
+// {defaultParameterValue: 'SimpleOutput', parameterValue: 'RecRBSize'} -> number
+// {defaultParameterValue: 'SimpleOutput', parameterValue: 'RecRBPrefix'} -> string
+
+// Events
+// ReplayBufferStateChanged -> { outputActive: boolean, outputState: 'starting' | 'started' | 'stopping' | 'stopped' }
+// ReplayBufferSaved -> { savedReplayPath: string }
+// StreamStateChanged -> { outputActive: boolean, outputState: 'starting' | 'started' | 'stopping' | 'stopped' }
+
 
 //endregion

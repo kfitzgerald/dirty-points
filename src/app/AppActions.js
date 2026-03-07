@@ -34,3 +34,11 @@ export function setFullStopEnabled(enabled) {
     };
 }
 
+export const SET_SHOW_WORKAROUND_LOGIN_MODAL = 'SET_SHOW_WORKAROUND_LOGIN_MODAL';
+export function setShowWorkaroundLoginModal(enabled) {
+    return {
+        type: SET_SHOW_WORKAROUND_LOGIN_MODAL,
+        enabled
+    };
+}
+

@@ -1,4 +1,9 @@
-import {APP_CRASH, SET_FULL_STOP_ENABLED, SET_PREFERENCE} from "./AppActions";
+import {
+    APP_CRASH,
+    SET_FULL_STOP_ENABLED,
+    SET_PREFERENCE,
+    SET_SHOW_WORKAROUND_LOGIN_MODAL,
+} from "./AppActions";
 
 import {DEFAULT_PREFERENCES} from "../common/Constants";
 
@@ -8,7 +13,8 @@ export const initialState = {
     preferences: {
         ...DEFAULT_PREFERENCES,
     },
-    fullStop: false
+    fullStop: false,
+    showWorkaroundLoginModal: false,
 };
 
 export default function AppReducer(state = initialState, action) {
@@ -36,6 +42,12 @@ export default function AppReducer(state = initialState, action) {
             return {
                 ...state,
                 fullStop: action.enabled
+            };
+
+        case SET_SHOW_WORKAROUND_LOGIN_MODAL:
+            return {
+                ...state,
+                showWorkaroundLoginModal: action.enabled
             };
 
         default:

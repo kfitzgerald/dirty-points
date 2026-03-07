@@ -13,11 +13,14 @@ export default function RewardsTable({ showOther=false }) {
     const [selectedReward, setSelectedReward] = useState(null);
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [showMappingModal, setShowMappingModal] = useState(false);
-    const redemptions = useSelector(state => state.redemptions);
-    const { mappings, isFetchingRewards, isFetchingManageableRewards, lastError  } = redemptions;
+    const mappings = useSelector(state => state.redemptions.mappings);
+    const isFetchingRewards = useSelector(state => state.redemptions.isFetchingRewards);
+    const isFetchingManageableRewards = useSelector(state => state.redemptions.isFetchingManageableRewards);
+    const lastError = useSelector(state => state.redemptions.lastError);
+    const manageableRewards = useSelector(state => state.redemptions.manageableRewards);
+    const allRewards = useSelector(state => state.redemptions.rewards);
 
-    const manageableRewards = redemptions.manageableRewards;
-    const otherRewards = redemptions.rewards.filter(reward => !manageableRewards.find(mr => mr.id === reward.id));
+    const otherRewards = allRewards.filter(reward => !manageableRewards.find(mr => mr.id === reward.id));
     const rewards = showOther ? otherRewards : manageableRewards;
 
     const handleModalClose = useCallback(() => {
@@ -36,7 +39,7 @@ export default function RewardsTable({ showOther=false }) {
             setSelectedReward(reward);
             setShowUpdateModal(true);
         }
-    }, [manageableRewards, otherRewards]);
+    }, [manageableRewards, allRewards, otherRewards]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleEditMapping = useCallback((e) => {
         const id = e.target.dataset.id;
@@ -45,7 +48,7 @@ export default function RewardsTable({ showOther=false }) {
             setSelectedReward(reward);
             setShowMappingModal(true);
         }
-    }, [manageableRewards, otherRewards]);
+    }, [manageableRewards, allRewards, otherRewards]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const testReward = (reward) => {
         dispatch(executeReward(reward.id));
@@ -60,13 +63,14 @@ export default function RewardsTable({ showOther=false }) {
     // }, [dispatch]);
 
     const handleToggleReward = useCallback(async (rewardId) => {
-        const reward = redemptions.manageableRewards.find(r => r.id === rewardId);
+        const reward = manageableRewards.find(r => r.id === rewardId);
+        console.log(reward, !reward.is_enabled)
         if (reward) {
             await dispatch(updateReward(rewardId, {
                 is_enabled: !reward.is_enabled
             }));
         }
-    }, [dispatch, redemptions ]);
+    }, [dispatch, allRewards, manageableRewards ]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
     return (
@@ -104,8 +108,8 @@ export default function RewardsTable({ showOther=false }) {
                                 </td>
                             </tr>
                         ) : (
-                            rewards.sort((a, b) => a.title.localeCompare(b.title)).map((reward, i) => (
-                                <tr key={i}>
+                            rewards.sort((a, b) => a.title.localeCompare(b.title)).map((reward) => (
+                                <tr key={reward.id}>
                                     <td className="pe-0">
                                         <HoverToolTip text={reward.is_enabled ? 'Disable reward' : 'Enable reward'} placement="top" delay={250}>
                                             <Form.Check type="switch"

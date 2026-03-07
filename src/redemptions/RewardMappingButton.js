@@ -11,6 +11,11 @@ export default function RewardMappingButton({ reward, mapping, onClick }) {
     if (mapping) {
         const type = getMappingType(mapping);
         switch (type) {
+            case MAPPING_TYPES.SPECIAL_ACTION:
+                mappingDescription = <><i className="bi bi-eye-slash-fill"/> Actions: {mapping.actions.join(', ')}</>;
+                mappingStatus = 'text-success';
+                break;
+
             case MAPPING_TYPES.FILTER_TOGGLE:
                 mappingDescription = <><i className="bi bi-eye-slash-fill"/> Filters: {mapping.sourceFilters.reduce((a, c) => a+c.filterNames.length, 0)}</>;
                 mappingStatus = 'text-success';

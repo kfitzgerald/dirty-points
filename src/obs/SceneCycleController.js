@@ -11,7 +11,7 @@ export default class SceneCycleController {
     }
 
     watchState() {
-        let { cycleEnabled, activeCycle, activeCycleSceneIndex, currentProgramSceneName, cyclePaused, fullStop } = this.getState();
+        let { cycleEnabled, activeCycle, activeCycleSceneIndex, currentProgramSceneName, cyclePaused, fullStop, isTransitioning } = this.getState();
         this.redux.subscribe(() => {
             let {
                 cycleEnabled: newCycleEnabled,
@@ -19,10 +19,11 @@ export default class SceneCycleController {
                 activeCycleSceneIndex: newActiveCycleSceneIndex,
                 currentProgramSceneName: newCurrentProgramSceneName,
                 cyclePaused: newCyclePaused,
-                fullStop: newFullStop
+                fullStop: newFullStop,
+                isTransitioning: newIsTransitioning
             } = this.getState();
 
-            let enabledChanged, groupChanged, pauseChanged, fullStopChanged;
+            let enabledChanged, groupChanged, pauseChanged, fullStopChanged, transitioningChanged;
 
             if (newCycleEnabled !== cycleEnabled) {
                 console.log('SceneCycleController: enabled changed', newCycleEnabled);
@@ -44,6 +45,11 @@ export default class SceneCycleController {
                 fullStopChanged = true;
             }
 
+            if (newIsTransitioning !== isTransitioning) {
+                console.log('SceneCycleController: %s', (newIsTransitioning ? 'transition-started' : 'transition-ended'), newCyclePaused);
+                transitioningChanged = true;
+            }
+
             if (newActiveCycleSceneIndex !== activeCycleSceneIndex) {
                 console.log('SceneCycleController: scene index changed', newActiveCycleSceneIndex)
             }
@@ -59,11 +65,12 @@ export default class SceneCycleController {
             currentProgramSceneName = newCurrentProgramSceneName;
             cyclePaused = newCyclePaused;
             fullStop = newFullStop;
+            isTransitioning = newIsTransitioning;
 
             // Trigger events
-            if (enabledChanged || groupChanged || pauseChanged || fullStopChanged) {
-                if (newCycleEnabled && newActiveCycle && !newCyclePaused && !newFullStop) {
-                    this.onStartCycle(!newCycleEnabled && !newActiveCycle && (pauseChanged || fullStopChanged));
+            if (enabledChanged || groupChanged || pauseChanged || fullStopChanged || transitioningChanged) {
+                if (newCycleEnabled && newActiveCycle && !newCyclePaused && !newFullStop && !newIsTransitioning) {
+                    this.onStartCycle(!newCycleEnabled && !newActiveCycle && (pauseChanged || fullStopChanged || transitioningChanged));
                 } else {
                     this.onStopCycle();
                 }
@@ -202,8 +209,8 @@ export default class SceneCycleController {
 
     getState() {
         const { obs, app } = this.redux.getState()
-        const { cycleEnabled, activeCycle, activeCycleSceneIndex, currentProgramSceneName, cyclePaused } = obs;
+        const { cycleEnabled, activeCycle, activeCycleSceneIndex, currentProgramSceneName, cyclePaused, isTransitioning } = obs;
         const { fullStop } = app;
-        return { cycleEnabled, activeCycle, activeCycleSceneIndex, currentProgramSceneName, cyclePaused, fullStop };
+        return { cycleEnabled, activeCycle, activeCycleSceneIndex, currentProgramSceneName, cyclePaused, fullStop, isTransitioning };
     }
 }

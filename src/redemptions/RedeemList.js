@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useState} from "react";
-import {shallowEqual, useDispatch, useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import './RedeemList.scss';
 import {Accordion, Badge, Button, Container, Nav, Navbar, NavDropdown, Tab, Tabs} from "react-bootstrap";
 import {revokeToken} from "../session/SessionActions";
@@ -31,16 +31,22 @@ import { ReactComponent as PauseIcon } from "../img/pause-circle-fill.svg"
 import { ReactComponent as PlayIcon } from "../img/arrow-repeat.svg"
 import ExportModal from "./ExportModal";
 import HoverToolTip from "../common/HoverToolTip";
+import ReplayBufferSettings from "../obs/ReplayBufferSettings";
 
 export default function RedeemList() {
     const dispatch = useDispatch();
-    const [session, userCache, obs, redemptions, fullStop ] = useSelector(state => [
-        state.session,
-        state.users.cache,
-        state.obs,
-        state.redemptions,
-        state.app.fullStop,
-    ], shallowEqual);
+    const obsStatus = useSelector(state => state.obs.status)
+    const streamStatus = useSelector(state => state.obs.streamStatus)
+    const replayBufferStatus = useSelector(state => state.obs.replayBufferStatus)
+    const activeCycle = useSelector(state => state.obs.activeCycle)
+    const cycleEnabled = useSelector(state => state.obs.cycleEnabled)
+    const cyclePaused = useSelector(state => state.obs.cyclePaused)
+    const isSyncing = useSelector(state => state.obs.isSyncing)
+    const token = useSelector(state => state.session.token)
+    const data = useSelector(state => state.session.data)
+    const userCache = useSelector(state => state.users.cache)
+    const redemptionStatus = useSelector(state => state.redemptions.status)
+    const fullStop = useSelector(state => state.app.fullStop)
     const [ showExportModal, setShowExportModal ] = useState(false);
     const {getRootProps, getInputProps, open} = useDropzone({
         // Disable click and keydown behavior
@@ -75,7 +81,6 @@ export default function RedeemList() {
         }
     });
 
-    const { /*lastError,*/ token, data } = session;
     const { user_id, login } = data;
 
     useEffect(() => {
@@ -114,7 +119,7 @@ export default function RedeemList() {
     }, [open]);
 
     const handleOBSUpdate = useCallback(async (/*event*/) => {
-        switch (obs.status) {
+        switch (obsStatus) {
             case OBS_CONNECTION_STATUS.connected:
                 return dispatch(disconnectFromOBS());
 
@@ -124,10 +129,10 @@ export default function RedeemList() {
             default:
                 return;
         }
-    }, [dispatch, obs.status]);
+    }, [dispatch, obsStatus]);
 
     const handleTwitchRefresh = useCallback(async () => {
-        switch (redemptions.status) {
+        switch (redemptionStatus) {
             case TWITCH_CONNECTION_STATUS.connected:
               return dispatch(disconnectFromTwitch());
 
@@ -140,18 +145,18 @@ export default function RedeemList() {
             default:
                 return;
         }
-    }, [dispatch, redemptions.status]);
+    }, [dispatch, redemptionStatus]);
 
     const handleCycleToggle = useCallback(async () => {
-        if (obs.activeCycle && obs.cycleEnabled) {
+        if (activeCycle && cycleEnabled) {
             dispatch(stopSceneCycle());
-        } else if (obs.activeCycle && !obs.cycleEnabled) {
+        } else if (activeCycle && !cycleEnabled) {
             dispatch(startSceneCycle());
             if (fullStop) {
                 dispatch(setFullStopEnabled(false));
             }
         }
-    }, [dispatch, obs, fullStop]);
+    }, [dispatch, activeCycle, cycleEnabled, fullStop]);
 
     const handleFullStopToggle = useCallback(async () => {
         dispatch(setFullStopEnabled(!fullStop));
@@ -163,16 +168,16 @@ export default function RedeemList() {
 
     const getStatusButton = () => {
         let Icon = PauseIcon;
-        if (!obs.activeCycle || !obs.cycleEnabled || obs.cyclePaused) {
+        if (!activeCycle || !cycleEnabled || cyclePaused) {
             Icon = PlayIcon
         }
         return (
-            <HoverToolTip text={obs.activeCycle ? `Toggle current cycle group: ${obs.activeCycle?.name}` : 'No cycle group selected'} placement="bottom" delay={250}>
+            <HoverToolTip text={activeCycle ? `Toggle current cycle group: ${activeCycle?.name}` : 'No cycle group selected'} placement="bottom" delay={250}>
                 <Button variant="link" className="fs-3 p-0 fs-6" onClick={handleCycleToggle}>
                     <Icon className={
-                        (obs.activeCycle && obs.cycleEnabled && obs.cyclePaused) ? 'fill-warning' :
-                            (obs.activeCycle && obs.cycleEnabled && !obs.cyclePaused) ? 'fill-info' :
-                                (obs.activeCycle && !obs.cycleEnabled) ? 'fill-primary' : 'fill-secondary'
+                        (activeCycle && cycleEnabled && cyclePaused) ? 'fill-warning' :
+                            (activeCycle && cycleEnabled && !cyclePaused) ? 'fill-info' :
+                                (activeCycle && !cycleEnabled) ? 'fill-primary' : 'fill-secondary'
                     } />
                 </Button>
             </HoverToolTip>
@@ -215,16 +220,16 @@ export default function RedeemList() {
                                 {getFullStopButton()}
                                 {getStatusButton()}
                                 <div>
-                                    <HoverToolTip text={`OBS: ${obs.status}`} placement="bottom" delay={250}>
-                                        <img src={obsLogo} alt="Twitch" title={obs.status} />
+                                    <HoverToolTip text={`OBS: ${obsStatus}`} placement="bottom" delay={250}>
+                                        <img src={obsLogo} alt="Twitch" title={obsStatus} />
                                     </HoverToolTip>
-                                    <Badge bg={obs.status === OBS_CONNECTION_STATUS.connected ? 'success' : obs.status === OBS_CONNECTION_STATUS.connecting ? 'warning' : 'danger'}>&nbsp;</Badge>
+                                    <Badge bg={obsStatus === OBS_CONNECTION_STATUS.connected ? 'success' : obsStatus === OBS_CONNECTION_STATUS.connecting ? 'warning' : 'danger'}>&nbsp;</Badge>
                                 </div>
                                 <div>
-                                    <HoverToolTip text={`Twitch: ${redemptions.status}`} placement="bottom" delay={250}>
-                                        <img src={twitchLogo} alt="OBS" title={redemptions.status} />
+                                    <HoverToolTip text={`Twitch: ${redemptionStatus}`} placement="bottom" delay={250}>
+                                        <img src={twitchLogo} alt="OBS" title={redemptionStatus} />
                                     </HoverToolTip>
-                                    <Badge bg={redemptions.status === TWITCH_CONNECTION_STATUS.connected ? 'success' : redemptions.status === TWITCH_CONNECTION_STATUS.connecting ? 'warning' : 'danger'}>&nbsp;</Badge>
+                                    <Badge bg={redemptionStatus === TWITCH_CONNECTION_STATUS.connected ? 'success' : redemptionStatus === TWITCH_CONNECTION_STATUS.connecting ? 'warning' : 'danger'}>&nbsp;</Badge>
                                 </div>
                             </div>
                             <NavDropdown title={<><img src={userCache[user_id]?.profile_image_url || twitchLogo} alt="" /> {userCache[user_id]?.display_name || login}</>} id="user-dropdown" align="end">
@@ -244,12 +249,16 @@ export default function RedeemList() {
                             <div className="d-flex justify-content-between mt-3">
                                 <h2 className="d-flex align-items-center justify-content-center">
                                     OBS <Badge className="ms-2 fs-sm"
-                                               bg={obs.status === OBS_CONNECTION_STATUS.connected ? 'success' : obs.status === OBS_CONNECTION_STATUS.connecting ? 'warning' : 'danger'}>{obs.status}</Badge>
+                                               bg={obsStatus === OBS_CONNECTION_STATUS.connected ? 'success' : obsStatus === OBS_CONNECTION_STATUS.connecting ? 'warning' : 'danger'}>socket {obsStatus}</Badge>
+                                    <Badge className="ms-2 fs-sm"
+                                           bg={obsStatus === OBS_CONNECTION_STATUS.connected && streamStatus.outputActive ? 'success' : 'danger'}>stream {obsStatus === OBS_CONNECTION_STATUS.connected && streamStatus.outputActive ? 'live' : 'stopped'}</Badge>
+                                    <Badge className="ms-2 fs-sm"
+                                           bg={obsStatus === OBS_CONNECTION_STATUS.connected && replayBufferStatus.outputActive ? 'success' : 'danger'}>replay {obsStatus === OBS_CONNECTION_STATUS.connected && replayBufferStatus.outputActive ? 'started' : 'stopped'}</Badge>
                                 </h2>
                                 <div>
-                                    <HoverToolTip text={obs.isSyncing ? 'Syncing with OBS...' : obs.status === OBS_CONNECTION_STATUS.connected ? 'Disconnect from OBS' : 'Connect to OBS'} placement="left" delay={250}>
-                                        <Button className="me-2" variant="secondary" disabled={obs.isSyncing} onClick={handleOBSUpdate}><i
-        className={`bi ${obs.isSyncing ? 'bi-arrow-clockwise icon-spin d-inline-block' : obs.status === OBS_CONNECTION_STATUS.connected ? 'bi-pause-circle' : obs.status === OBS_CONNECTION_STATUS.disconnected ? 'bi-play-circle' : 'bi-hourglass'}`}/></Button>
+                                    <HoverToolTip text={isSyncing ? 'Syncing with OBS...' : obsStatus === OBS_CONNECTION_STATUS.connected ? 'Disconnect from OBS' : 'Connect to OBS'} placement="left" delay={250}>
+                                        <Button className="me-2" variant="secondary" disabled={isSyncing} onClick={handleOBSUpdate}><i
+        className={`bi ${isSyncing ? 'bi-arrow-clockwise icon-spin d-inline-block' : obsStatus === OBS_CONNECTION_STATUS.connected ? 'bi-pause-circle' : obsStatus === OBS_CONNECTION_STATUS.disconnected ? 'bi-play-circle' : 'bi-hourglass'}`}/></Button>
                                     </HoverToolTip>
                                 </div>
                             </div>
@@ -272,17 +281,25 @@ export default function RedeemList() {
                                         <OBSSettings/>
                                     </Accordion.Body>
                                 </Accordion.Item>
+                                <Accordion.Item eventKey={"replay"}>
+                                    <Accordion.Header>
+                                        OBS Replay Buffer
+                                    </Accordion.Header>
+                                    <Accordion.Body>
+                                        <ReplayBufferSettings/>
+                                    </Accordion.Body>
+                                </Accordion.Item>
                             </Accordion>
 
                             <div className="d-flex justify-content-between mt-4 mb-2">
                                 <h2 className="d-flex align-items-center justify-content-center">
                                     Twitch <Badge className="ms-2 fs-sm"
-                                                  bg={redemptions.status === TWITCH_CONNECTION_STATUS.connected ? 'success' : redemptions.status === TWITCH_CONNECTION_STATUS.connecting ? 'warning' : 'danger'}>{redemptions.status}</Badge>
+                                                  bg={redemptionStatus === TWITCH_CONNECTION_STATUS.connected ? 'success' : redemptionStatus === TWITCH_CONNECTION_STATUS.connecting ? 'warning' : 'danger'}>{redemptionStatus}</Badge>
                                 </h2>
                                 <div>
-                                    <HoverToolTip text={obs.status === TWITCH_CONNECTION_STATUS.connected ? 'Disconnect from Twitch' : 'Connect to Twitch'} placement="left" delay={250}>
+                                    <HoverToolTip text={obsStatus === TWITCH_CONNECTION_STATUS.connected ? 'Disconnect from Twitch' : 'Connect to Twitch'} placement="left" delay={250}>
                                         <Button className="me-2" variant="secondary" onClick={handleTwitchRefresh}><i
-        className={`bi ${redemptions.status === TWITCH_CONNECTION_STATUS.connected ? 'bi-pause-circle' : redemptions.status === TWITCH_CONNECTION_STATUS.disconnected ? 'bi-play-circle' : 'bi-hourglass'}`}/></Button>
+        className={`bi ${redemptionStatus === TWITCH_CONNECTION_STATUS.connected ? 'bi-pause-circle' : redemptionStatus === TWITCH_CONNECTION_STATUS.disconnected ? 'bi-play-circle' : 'bi-hourglass'}`}/></Button>
                                     </HoverToolTip>
                                     <CreateRewardButton/>
                                 </div>

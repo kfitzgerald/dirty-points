@@ -5,7 +5,8 @@ import {
     DELETE_SCENE_CYCLE_GROUP_ITEM,
     OBS_CONNECTION_STATUS,
     OBS_SCENE_CREATED,
-    OBS_SCENE_ITEM_CREATED, OBS_SCENE_ITEM_REMOVED,
+    OBS_SCENE_ITEM_CREATED,
+    OBS_SCENE_ITEM_REMOVED,
     OBS_SCENE_LIST_CHANGED,
     OBS_SCENE_NAME_CHANGED,
     OBS_SCENE_REMOVED,
@@ -25,7 +26,12 @@ import {
     UPDATE_OBS_SOURCE_FILTER_LIST,
     FULL_OBS_SCENE_UPDATE_STATUS,
     UPDATE_OBS_SOURCE_FILTER_LIST_BULK,
-    UPDATE_OBS_SOURCE_FILTER_ENABLED
+    UPDATE_OBS_SOURCE_FILTER_ENABLED,
+    UPDATE_OBS_STREAM_STATUS,
+    UPDATE_OBS_REPLAY_BUFFER_STATUS,
+    UPDATE_OBS_PROFILE_SETTINGS,
+    UPDATE_OBS_RECORDING_PATH,
+    SET_TRANSITIONING_STATUS,
 } from "./OBSActions";
 import {IMPORT_SETTINGS} from "../app/AppActions";
 
@@ -43,6 +49,26 @@ export const initialState = {
     scenes: [],
     sceneItems: {}, // key=sceneName, value=[sources]
     filters: {}, // key=scene/sourceName, value=[filters]
+    recordDirectory: null, // where obs records videos (and will re-use for screenshots and clips)
+    isTransitioning: false,
+
+    // Clips
+    profileSettings: {
+        outputMode: null,
+        replayBufferEnabled: null,
+        replayBufferTime: null,
+        replayBufferSize: null,
+        replayBufferPrefix: null,
+    },
+    streamStatus: {
+        outputActive: false,
+    },
+    replayBufferStatus: {
+        outputActive: false,
+    },
+    replays: [
+        // { savedReplayPath: 'filepath' }
+    ],
 
     // Rotator
     cycleGroups: [], // { name: '', duration: 30, scenes: [ { sceneId: '', sceneName: '', duration: 0 } ] }
@@ -114,6 +140,12 @@ export default function OBSReducer(state = initialState, action) {
             }
         }
 
+        case UPDATE_OBS_RECORDING_PATH:
+            return {
+                ...state,
+                recordDirectory: action.recordDirectory,
+            };
+
         //endregion
 
         //region Scene & Items state
@@ -152,6 +184,12 @@ export default function OBSReducer(state = initialState, action) {
             }
             return newState;
         }
+
+        case SET_TRANSITIONING_STATUS:
+            return {
+                ...state,
+                isTransitioning: action.enabled
+            };
 
         //endregion
 
@@ -254,6 +292,9 @@ export default function OBSReducer(state = initialState, action) {
             state.cycleGroups[groupIndex] = { ...action.data };
             return {
                 ...state,
+                cycleGroups: [
+                    ...state.cycleGroups
+                ]
             };
         }
 
@@ -269,7 +310,12 @@ export default function OBSReducer(state = initialState, action) {
             const group = state.cycleGroups.find(g => action.group === g);
             if (!group) return state;
             group.scenes = [...group.scenes, action.item];
-            return { ...state };
+            return {
+                ...state,
+                cycleGroups: [
+                    ...state.cycleGroups,
+                ]
+            };
         }
 
         case UPDATE_SCENE_CYCLE_GROUP_ITEM: {
@@ -282,7 +328,12 @@ export default function OBSReducer(state = initialState, action) {
 
             group.scenes[sceneIndex] = { ...action.data };
 
-            return {...state};
+            return {
+                ...state,
+                cycleGroups: [
+                    ...state.cycleGroups
+                ]
+            };
         }
 
         case DELETE_SCENE_CYCLE_GROUP_ITEM: {
@@ -291,8 +342,14 @@ export default function OBSReducer(state = initialState, action) {
 
             group.scenes = group.scenes.filter(i => i !== action.item);
 
-            return { ...state };
+            return {
+                ...state,
+                cycleGroups: [
+                    ...state.cycleGroups,
+                ]
+            };
         }
+
         case REORDER_SCENE_CYCLE_GROUP_ITEM: {
             const group = state.cycleGroups.find(g => action.group === g);
             if (!group) return state;
@@ -302,7 +359,37 @@ export default function OBSReducer(state = initialState, action) {
             scenes.splice(action.destinationIndex, 0, item);
             group.scenes = scenes;
 
-            return state;
+            return {
+                ...state,
+                cycleGroups: [
+                    ...state.cycleGroups,
+                ]
+            };
+        }
+
+        //endregion
+
+        //region Replay buffer & stream status
+
+        case UPDATE_OBS_STREAM_STATUS: {
+            return {
+                ...state,
+                streamStatus: action.status,
+            }
+        }
+
+        case UPDATE_OBS_REPLAY_BUFFER_STATUS: {
+            return {
+                ...state,
+                replayBufferStatus: action.status,
+            }
+        }
+
+        case UPDATE_OBS_PROFILE_SETTINGS: {
+            return {
+                ...state,
+                profileSettings: action.settings,
+            }
         }
 
         //endregion

@@ -8,7 +8,7 @@ export function OBSSourceFiltersPicker({ sourceFilter = null, onAdd=null, onChan
         sourceName: null,
         filterNames: []
     });
-    const obs = useSelector(state => state.obs);
+    const filters = useSelector(state => state.obs.filters);
 
     const [ currentSourceName, setCurrentSourceName ] = useState(sourceName);
     const [ currentFilterNames, setCurrentFilterNames ] = useState([...filterNames]);
@@ -18,7 +18,7 @@ export function OBSSourceFiltersPicker({ sourceFilter = null, onAdd=null, onChan
         setCurrentFilterNames([...(sourceFilter?.filterNames || [])]);
     }, [sourceFilter]);
 
-    const sourcesWithFilters = Object.keys(obs.filters).filter(k => obs.filters[k].length > 0).sort();
+    const sourcesWithFilters = Object.keys(filters).filter(k => filters[k].length > 0).sort();
     const sourceOptions = sourcesWithFilters.map((sourceName) => {
         return {
             value: sourceName,
@@ -26,7 +26,7 @@ export function OBSSourceFiltersPicker({ sourceFilter = null, onAdd=null, onChan
         }
     });
 
-    const filterOptions = (currentSourceName && obs.filters[currentSourceName]) ? obs.filters[currentSourceName].map((filter) => {
+    const filterOptions = (currentSourceName && filters[currentSourceName]) ? filters[currentSourceName].map((filter) => {
         return {
             value: filter.filterName,
             label: filter.filterName

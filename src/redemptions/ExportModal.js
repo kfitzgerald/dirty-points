@@ -3,17 +3,20 @@ import CopyButton from "../common/CopyButton";
 import {useSelector} from "react-redux";
 
 export default function ExportModal({ show, onClose }) {
-    const obs = useSelector(state => state.obs);
-    const redemptions = useSelector(state => state.redemptions);
+    const host = useSelector(state => state.obs.host);
+    const port = useSelector(state => state.obs.port);
+    const password = useSelector(state => state.obs.password);
+    const cycleGroups = useSelector(state => state.obs.cycleGroups);
+    const mappings = useSelector(state => state.redemptions.mappings);
 
     const payload = {
         obs: {
-            host: obs.host,
-            port: obs.port,
-            password: obs.password,
-            cycleGroups: obs.cycleGroups
+            host,
+            port,
+            password,
+            cycleGroups,
         },
-        mappings: redemptions.mappings
+        mappings
     };
 
     const data = JSON.stringify(payload, null, 2);

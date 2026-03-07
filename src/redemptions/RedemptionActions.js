@@ -175,6 +175,14 @@ export function enqueueFilterReward(rewardId) {
     };
 }
 
+export const ENQUEUE_ACTION_REWARD = 'ENQUEUE_ACTION_REWARD';
+export function enqueueActionReward(rewardId) {
+    return {
+        type: ENQUEUE_ACTION_REWARD,
+        rewardId
+    };
+}
+
 export const DEQUEUE_SCENE_REWARD = 'DEQUEUE_SCENE_REWARD';
 export function dequeueSceneReward(rewardId) {
     return {
@@ -195,6 +203,14 @@ export const DEQUEUE_FILTER_REWARD = 'DEQUEUE_FILTER_REWARD';
 export function dequeueFilterReward(rewardId) {
     return {
         type: DEQUEUE_FILTER_REWARD,
+        rewardId
+    };
+}
+
+export const DEQUEUE_ACTION_REWARD = 'DEQUEUE_ACTION_REWARD';
+export function dequeueActionReward(rewardId) {
+    return {
+        type: DEQUEUE_ACTION_REWARD,
         rewardId
     };
 }
@@ -241,6 +257,20 @@ export function getNextQueuedFilterReward() {
     }
 }
 
+export function getNextQueuedActionReward() {
+    return async (dispatch, getState) => {
+        const {redemptions} = getState();
+        const { actionRedemptionQueue } = redemptions;
+        const task = actionRedemptionQueue[0];
+
+        // Update state
+        if (task) await dispatch(dequeueActionReward(task));
+
+        // Return the task
+        return task;
+    }
+}
+
 export function executeReward(rewardId) {
     return async (dispatch, getState) => {
         const {redemptions} = getState();
@@ -256,6 +286,7 @@ export function executeReward(rewardId) {
             case MAPPING_TYPES.FILTER_TOGGLE: return await dispatch(enqueueFilterReward(rewardId));
             case MAPPING_TYPES.SCENE_CHANGE:  return await dispatch(enqueueSceneReward(rewardId));
             case MAPPING_TYPES.SOURCE_TOGGLE: return await dispatch(enqueueSourceReward(rewardId));
+            case MAPPING_TYPES.SPECIAL_ACTION: return await dispatch(enqueueActionReward(rewardId));
             default:
                 console.warn('executeReward: Invalid mapping - dunno how to handle', mapping);
         }

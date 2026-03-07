@@ -1,14 +1,17 @@
+import {useCallback, useEffect} from "react";
 import logo from '../img/logo.svg';
 import './App.scss';
 import Loading from "../common/Loading";
 import {useDispatch, useSelector} from "react-redux";
 import {fetchTokenValidate, receiveTokenValidateError, setOAuthToken} from "../session/SessionActions";
-import {useEffect} from "react";
-import {Alert} from "react-bootstrap";
+import {Alert, Button, ButtonGroup, Dropdown} from "react-bootstrap";
 
 import {REQUIRED_SCOPES} from "../common/Constants";
 import ErrorMessage from "../common/ErrorMessage";
 import RedeemList from "../redemptions/RedeemList";
+import WorkaroundLoginModal from "../session/WorkaroundLoginModal";
+import {setShowWorkaroundLoginModal} from "./AppActions";
+import CopyElement from "../common/CopyElement";
 
 function cleanURL() {
     window.history.replaceState("", document.title, window.location.pathname);
@@ -17,9 +20,36 @@ function cleanURL() {
 function App() {
 
     const dispatch = useDispatch();
-    const session = useSelector(state => state.session);
+    const lastError = useSelector(state => state.session.lastError);
+    const token = useSelector(state => state.session.token);
+    const data = useSelector(state => state.session.data);
+    const showWorkaroundLoginModal = useSelector(state => state.app.showWorkaroundLoginModal);
 
-    const { lastError, token, data } = session;
+    const checkURLforOAuthParams = useCallback((url) => {
+        // Check for OAuth authorization
+        if (url.hash) {
+            const hashParams = new URLSearchParams(url.hash.substring(1))
+            const hashData = Object.fromEntries(hashParams.entries());
+            dispatch(setOAuthToken(hashData));
+            cleanURL();
+        }
+
+        // Check for OAuth error
+        if (url.search) {
+            const searchParams = new URLSearchParams(url.search.substring(1))
+            const searchData = Object.fromEntries(searchParams.entries());
+            dispatch(receiveTokenValidateError(searchData));
+            cleanURL();
+        }
+    }, [ dispatch ])
+
+    const handleWorkaroundLogin = useCallback((url) => {
+        try {
+            checkURLforOAuthParams(new URL(url));
+        } catch (err) {
+            console.error('Invalid URL from workaround login:', url, err);
+        }
+    }, [checkURLforOAuthParams]);
 
     // Check for oauth return params on load
     useEffect(() => {
@@ -88,16 +118,27 @@ function App() {
                 <p>
                     <code>DirtyPoints™</code> connects Twitch redemptions to OBS.
                 </p>
-                <p>To get started, <a
-                        className="App-link btn"
-                        href={"https://id.twitch.tv/oauth2/authorize?" + oauthParams.toString()}
-                        rel="noreferrer"
-                    >
-                        Login with Twitch
-                    </a>
+                <p>To get started,  <Dropdown as={ButtonGroup}>
+                        <Button variant="primary"
+                                className="App-link"
+                                href={"https://id.twitch.tv/oauth2/authorize?" + oauthParams.toString()}
+                                rel="noreferrer"
+                                target="_blank"
+                        >Login with Twitch</Button>
+
+                        <Dropdown.Toggle split variant="primary" id="dropdown-split-basic" />
+
+                        <Dropdown.Menu>
+                            <CopyElement Component={Dropdown.Item} href="#" value={"https://id.twitch.tv/oauth2/authorize?" + oauthParams.toString()}>Copy login link</CopyElement>
+                            <Dropdown.Item onClick={() =>
+                                dispatch(setShowWorkaroundLoginModal(true))
+                            }>Still not working?</Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Dropdown>
                 </p>
                 <footer><a href="https://github.com/kfitzgerald/dirty-points#add-to-obs" target="_blank" rel="noreferrer">Setup an OBS Dock</a> • <a href="https://github.com/kfitzgerald/dirty-points" target="_blank" rel="noreferrer">Open Source</a> app made by <a href="https://www.twitch.tv/dirtybriefs" target="_blank" rel="noreferrer">Dirtybriefs</a>.</footer>
             </div>
+            <WorkaroundLoginModal show={showWorkaroundLoginModal} onClose={() => dispatch(setShowWorkaroundLoginModal(false))} onLogin={handleWorkaroundLogin} />
         </div>
     );
 }

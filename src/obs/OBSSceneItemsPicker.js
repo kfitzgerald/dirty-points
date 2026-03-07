@@ -8,7 +8,8 @@ export function OBSSceneItemsPicker({ secondaryMapping = null, onAdd=null, onCha
         scene: null,
         sceneItems: []
     });
-    const obs = useSelector(state => state.obs);
+    const scenes = useSelector(state => state.obs.scenes);
+    const obsSceneItems = useSelector(state => state.obs);
 
     const [ currentScene, setCurrentScene ] = useState(scene);
     const [ currentItems, setCurrentItems ] = useState([...sceneItems]);
@@ -18,14 +19,14 @@ export function OBSSceneItemsPicker({ secondaryMapping = null, onAdd=null, onCha
         setCurrentItems([...(secondaryMapping?.sceneItems || [])]);
     }, [secondaryMapping]);
 
-    const sceneOptions = obs.scenes.sort((a, b) => b.sceneIndex - a.sceneIndex).map((scene) => {
+    const sceneOptions = scenes.sort((a, b) => b.sceneIndex - a.sceneIndex).map((scene) => {
         return {
             value: scene.sceneName,
             label: scene.sceneName
         }
     });
 
-    const sceneItemOptions = (currentScene && obs.sceneItems[currentScene]) ? obs.sceneItems[currentScene].sort((a, b) => b.sceneItemIndex - a.sceneItemIndex).map((sceneItem) => {
+    const sceneItemOptions = (currentScene && obsSceneItems[currentScene]) ? obsSceneItems[currentScene].sort((a, b) => b.sceneItemIndex - a.sceneItemIndex).map((sceneItem) => {
         return {
             value: sceneItem.sceneItemId,
             label: sceneItem.sourceName

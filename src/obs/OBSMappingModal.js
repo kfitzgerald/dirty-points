@@ -5,14 +5,15 @@ import Select from 'react-select';
 import {deleteRedemptionMapping, setRedemptionMapping} from "../redemptions/RedemptionActions";
 import {convertStringMapping, getEmptyMapping, getMappingType} from "../redemptions/RewardUtil";
 import {OBSSceneItemsPicker} from "./OBSSceneItemsPicker";
-import {CHAT_BADGES, MAPPING_TYPES} from "../common/Constants";
+import {CHAT_BADGES, MAPPING_TYPES, SPECIAL_ACTION_OPTIONS} from "../common/Constants";
 import HoverToolTip from "../common/HoverToolTip";
 import {OBSSourceFiltersPicker} from "./OBSSourceFiltersPicker";
 
 export default function OBSMappingModal({ show, onClose, reward=null }) {
     const dispatch = useDispatch();
-    const redemptions = useSelector(state => state.redemptions);
-    const obs = useSelector(state => state.obs);
+    const mappings = useSelector(state => state.redemptions.mappings);
+    const scenes = useSelector(state => state.obs.scenes);
+    const sceneItems = useSelector(state => state.obs.sceneItems);
     const [ desiredType, setDesiredType ] = useState(null);
 
     useEffect(() => {
@@ -22,7 +23,6 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
     // console.log(mapping)
 
     // Current mapping for this
-    const { mappings } = redemptions;
     let mapping = reward && mappings[reward.id];
 
     if (typeof mapping === "string") mapping = convertStringMapping(mapping);
@@ -30,6 +30,14 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
     if (!mapping) {
         mapping = getEmptyMapping();
     }
+
+    const handleUpdateSpecialItems = useCallback((value) => {
+        // dispatch action
+        dispatch(setRedemptionMapping(reward.id, {
+            ...mapping,
+            actions: value.map(o => o.value)
+        }));
+    }, [dispatch, reward, mapping]);
 
     const handleUpdateSceneName = useCallback((value) => {
         // dispatch action
@@ -136,14 +144,14 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
         };
     });
 
-    const sceneOptions = obs.scenes.sort((a, b) => b.sceneIndex - a.sceneIndex).map((scene) => {
+    const sceneOptions = scenes.sort((a, b) => b.sceneIndex - a.sceneIndex).map((scene) => {
         return {
             value: scene.sceneName,
             label: scene.sceneName
         }
     });
 
-    const sceneItemOptions = (mapping.sceneName && obs.sceneItems[mapping.sceneName]) ? obs.sceneItems[mapping.sceneName].sort((a, b) => b.sceneItemIndex - a.sceneItemIndex).map((sceneItem) => {
+    const sceneItemOptions = (mapping.sceneName && sceneItems[mapping.sceneName]) ? sceneItems[mapping.sceneName].sort((a, b) => b.sceneItemIndex - a.sceneItemIndex).map((sceneItem) => {
         return {
             value: sceneItem.sceneItemId,
             label: sceneItem.sourceName
@@ -171,7 +179,8 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
                     ...mapping,
                     sceneName: null,
                     sceneItems: [],
-                    secondaryItems: []
+                    secondaryItems: [],
+                    actions: [],
                 }));
                 break;
 
@@ -180,16 +189,29 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
                     ...mapping,
                     sceneItems: [],
                     secondaryItems: [],
-                    sourceFilters: []
+                    sourceFilters: [],
+                    actions: [],
                 }));
                 break;
 
             case MAPPING_TYPES.SOURCE_TOGGLE:
                 dispatch(setRedemptionMapping(reward.id, {
                     ...mapping,
+                    sourceFilters: [],
+                    actions: [],
+                }));
+                break;
+
+            case MAPPING_TYPES.SPECIAL_ACTION:
+                dispatch(setRedemptionMapping(reward.id, {
+                    ...mapping,
+                    sceneName: null,
+                    sceneItems: [],
+                    secondaryItems: [],
                     sourceFilters: []
                 }));
                 break;
+
             default:
         }
 
@@ -200,6 +222,7 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
     // - scene ----> redeem=show, timeout=(nothing, scene)
     // - item(s) --> redeem=show, timeout=hide
     // - filter(s)-> redeem=show, timeout=hide
+    // - action(s) ---> screenshot, replay buffer dump, etc
 
     // fields
     // - sceneName: 'name',
@@ -210,6 +233,7 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
     // - chatCommandBadges: [ 'broadcaster' ... ],
     // - secondaryItems: [ { sceneItems: [], sceneName: '' } ... ]
     // - sourceFilters: [ { sourceName: '', filterNames: [ '' ... ]] } ... ]
+    // - actions: [ 'screenshot' | 'replay-buffer' ... ]
 
     const secondaryItems = (mapping.secondaryItems || []);
     const sourceFilters = (mapping.sourceFilters || []);
@@ -399,6 +423,31 @@ export default function OBSMappingModal({ show, onClose, reward=null }) {
                                             </HoverToolTip>
                                         </Form.Group>
                                         <Form.Text>When duration is set to <code>0</code>, filters will be enabled and <em>not disabled</em>.</Form.Text>
+                                    </Row>
+                                </Accordion.Body>
+                            </Accordion.Item>
+
+                            <Accordion.Item eventKey={MAPPING_TYPES.SPECIAL_ACTION}>
+                                <Accordion.Header><i className="bi bi-eye-slash-fill text-primary d-inline-block me-2" />&nbsp;Special Action</Accordion.Header>
+                                <Accordion.Body>
+                                    <Row>
+                                        <Form.Group controlId="actionType" className="mb-3">
+                                            <Form.Label className="fw-semibold">OBS Action</Form.Label>
+                                            <Select
+                                                name="actionType"
+                                                classNamePrefix="react-select"
+                                                isMulti
+                                                unstyled
+                                                classNames={{
+                                                    container: () => `form-control`,
+                                                    option: () => 'dropdown-item',
+                                                    menuList: () => 'dropdown-menu show'
+                                                }}
+                                                options={SPECIAL_ACTION_OPTIONS}
+                                                value={SPECIAL_ACTION_OPTIONS.filter(o => Array.isArray(mapping.actions) && mapping.actions.includes(o.value))}
+                                                onChange={handleUpdateSpecialItems}
+                                            />
+                                        </Form.Group>
                                     </Row>
                                 </Accordion.Body>
                             </Accordion.Item>

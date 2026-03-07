@@ -9,7 +9,8 @@ export function convertStringMapping(mapping) {
         chatCommand: '',
         chatCommandBadges: [],
         secondaryItems: [],
-        sourceFilters: []
+        sourceFilters: [],
+        actions: [],
     }
 }
 
@@ -22,20 +23,24 @@ export function getEmptyMapping() {
         chatCommand: '',
         chatCommandBadges: [],
         secondaryItems: [],
-        sourceFilters: []
+        sourceFilters: [],
+        actions: [],
     }
 }
 
 export function getMappingType(mapping) {
     if (typeof mapping === 'string') mapping = convertStringMapping(mapping);
 
-    if (mapping.sourceFilters && mapping.sourceFilters.length > 0) {
+    if (mapping.actions?.length > 0) {
+        return MAPPING_TYPES.SPECIAL_ACTION;
+
+    } else if (mapping.sourceFilters?.length > 0) {
        return MAPPING_TYPES.FILTER_TOGGLE;
 
-    } else if (mapping.sceneName && mapping.sceneItems.length === 0) {
+    } else if (mapping.sceneName && mapping.sceneItems?.length === 0) {
         return MAPPING_TYPES.SCENE_CHANGE;
 
-    } else if (mapping.sceneName && mapping.sceneItems.length > 0) {
+    } else if (mapping.sceneName && mapping.sceneItems?.length > 0) {
         return MAPPING_TYPES.SOURCE_TOGGLE;
 
     } else {

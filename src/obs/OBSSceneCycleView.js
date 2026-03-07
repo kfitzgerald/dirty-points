@@ -8,7 +8,7 @@ import {
     Row,
     useAccordionButton
 } from "react-bootstrap";
-import {shallowEqual, useDispatch, useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {useCallback, useState} from "react";
 import * as Yup from "yup";
 import {useFormik} from "formik";
@@ -36,12 +36,13 @@ export function getEmptySceneItem() {
 
 export default function OBSSceneCycleView() {
     const dispatch = useDispatch();
-    const [obs, fullStop] = useSelector(state => [state.obs, state.app.fullStop], shallowEqual);
+    const fullStop = useSelector(state => state.app.fullStop)
+    const cycleGroups = useSelector(state => state.obs.cycleGroups)
+    const activeCycle = useSelector(state => state.obs.activeCycle)
+    const cycleEnabled = useSelector(state => state.obs.cycleEnabled)
     const [accordionKey, setAccordionKey] = useState(null);
     const [editingGroup, setEditingGroup] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
-
-    const { cycleGroups, activeCycle, cycleEnabled } = obs;
 
     const handleCreateSceneGroup = useCallback((data) => {
         dispatch(addSceneCycleGroup({
@@ -168,9 +169,9 @@ export default function OBSSceneCycleView() {
                     {cycleGroups.map((group, i) => (
                         <Card key={i} className="accordion-item">
                             <div className={"custom-accordion-header d-flex"+(accordionKey === i ? '' : ' collapsed')}>
-                                <HoverToolTip text={(obs.activeCycle === group && obs.cycleEnabled) ? 'Stop group cycling' : 'Start group cycling' } placement="top" delay={250}>
+                                <HoverToolTip text={(activeCycle === group && cycleEnabled) ? 'Stop group cycling' : 'Start group cycling' } placement="top" delay={250}>
                                     <Button variant="link" className="ps-3 pe-3" onClick={() => handleGroupPlayPauseClick(group)}>
-                                        {(obs.activeCycle === group && obs.cycleEnabled) ? (
+                                        {(activeCycle === group && cycleEnabled) ? (
                                             <i className="bi bi-pause-circle-fill text-info fs-4"/>
                                         ) : (
                                             <i className="bi bi-play-circle text-success fs-4"/>

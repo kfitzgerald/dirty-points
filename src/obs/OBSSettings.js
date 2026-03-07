@@ -5,8 +5,9 @@ import {useDispatch, useSelector} from "react-redux";
 
 export default function OBSSettings() {
     const dispatch = useDispatch();
-    const obs = useSelector(state => state.obs);
-    const { host, port, password } = obs;
+    const host = useSelector(state => state.obs.host);
+    const port = useSelector(state => state.obs.port);
+    const password = useSelector(state => state.obs.password);
 
     const handleOBSUpdate = useCallback(async (e) => {
         e.preventDefault();
@@ -18,7 +19,7 @@ export default function OBSSettings() {
         <Form onSubmit={handleOBSUpdate}>
             <Form.Group controlId="host" className="mb-3">
                 <Form.Label>Host</Form.Label>
-                <Form.Control type="text" value={obs.host} onChange={(e) => {
+                <Form.Control type="text" value={host} onChange={(e) => {
                     dispatch(updateOBSConnectionInfo({
                         host: e.target.value || '127.0.0.1',
                         port,
@@ -28,7 +29,7 @@ export default function OBSSettings() {
             </Form.Group>
             <Form.Group controlId="port" className="mb-3">
                 <Form.Label>Port</Form.Label>
-                <Form.Control type="number" value={obs.port} onChange={(e) => {
+                <Form.Control type="number" value={port} onChange={(e) => {
                     dispatch(updateOBSConnectionInfo({
                         host,
                         port: parseInt(e.target.value || 4455),
@@ -38,7 +39,7 @@ export default function OBSSettings() {
             </Form.Group>
             <Form.Group controlId="password" className="mb-3">
                 <Form.Label>Password</Form.Label>
-                <Form.Control type="password" value={obs.password} onChange={(e) => {
+                <Form.Control type="password" value={password} onChange={(e) => {
                     dispatch(updateOBSConnectionInfo({
                         host,
                         port,

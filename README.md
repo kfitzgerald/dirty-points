@@ -213,6 +213,12 @@ That's it. Really basic!
 
 # Changelog
 
+### v1.7.0 - 2025-03-07 - Replay buffer, screenshots, transition fixes 
+- Added screenshot redemption action - Take a screenshot of the program output when triggered
+- Added save replay buffer action - Save the reply buffer when triggered (e.g. !clip)
+- Added login option for alternate browsers (for embedded apps)
+- Fixed conflicting transitions when manually changing a scene while the scene cycle also triggers a transition (Scene cycle pauses while a scene transition is active)
+
 ### v1.6.1 - 2024-12-28 - Timeout functionality change
 - Only disable sources and filters when timeout/duration is above zero
 

@@ -852,7 +852,7 @@ export function getProfileSettings() {
                 }
             }
 
-            console.log('get', { replayBufferEnabled, value: getCurrentValue(replayBufferEnabled, Boolean) })
+            // console.log('get', { replayBufferEnabled, value: getCurrentValue(replayBufferEnabled, Boolean) })
 
             dispatch(updateOBSProfileSettings({
                 outputMode: getCurrentValue(outputMode, String),
@@ -889,7 +889,7 @@ export function setProfileSettings(settings) {
             if (keys.has('replayBufferSize')) await obsWebSocket.call('SetProfileParameter', { parameterCategory, parameterName: 'RecRBSize', parameterValue: String(settings.replayBufferSize) });
             if (keys.has('replayBufferPrefix')) await obsWebSocket.call('SetProfileParameter', { parameterCategory, parameterName: 'RecRBPrefix', parameterValue: String(settings.replayBufferPrefix) });
 
-            console.log('set', { replayBufferEnabled: String(settings.replayBufferEnabled) })
+            // console.log('set', { replayBufferEnabled: String(settings.replayBufferEnabled) })
 
             // Delay for a second for OBS to apply the settings before refreshing, otherwise we might get the old value back
             // await new Promise(resolve => setTimeout(resolve, 1000));
@@ -971,11 +971,8 @@ export function saveReplayBuffer() {
         if (status !== OBS_CONNECTION_STATUS.connected) return;
 
         try {
-
             await obsWebSocket.call('SaveReplayBuffer');
-
             console.log('Replay saved');
-
         } catch (err) {
             console.error('Failed to save replay buffer', err);
             dispatch(updateOBSError(err));

@@ -137,7 +137,6 @@ function LoginView() {
                                 className="App-link"
                                 href={"https://id.twitch.tv/oauth2/authorize?" + oauthParams.toString()}
                                 rel="noreferrer"
-                                target="_blank"
                         >Login with Twitch</Button>
 
                         <Dropdown.Toggle split variant="primary" id="dropdown-split-basic" />

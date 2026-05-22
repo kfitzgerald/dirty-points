@@ -60,16 +60,20 @@ function LoginView() {
         if (window.location.hash) {
             const hashParams = new URLSearchParams(window.location.hash.substring(1))
             const hashData = Object.fromEntries(hashParams.entries());
-            dispatch(setOAuthToken(hashData));
-            cleanURL();
+            if (hashParams.has('access_token') && hashParams.has('scope') && hashParams.has('state') && hashParams.has('token_type')) {
+                dispatch(setOAuthToken(hashData));
+                cleanURL();
+            }
         }
 
         // Check for OAuth error
         if (window.location.search) {
             const searchParams = new URLSearchParams(window.location.search.substring(1))
             const searchData = Object.fromEntries(searchParams.entries());
-            dispatch(receiveTokenValidateError(searchData));
-            cleanURL();
+            if (searchParams.has('error')) {
+                dispatch(receiveTokenValidateError(searchData));
+                cleanURL();
+            }
         }
 
     }, [dispatch]);
@@ -114,7 +118,8 @@ function LoginView() {
     const oauthParams = new URLSearchParams();
     oauthParams.set('client_id', process.env.REACT_APP_CLIENT_ID)
     oauthParams.set('force_verify', 'false')
-    oauthParams.set('redirect_uri', 'https://dirtybriefs.net/api/auth/clips')
+    oauthParams.set('redirect_uri', window.location.href.split('?')[0])
+    oauthParams.set('redirect_uri', window.location.href)
     oauthParams.set('response_type', 'token');
     oauthParams.set('scope', REQUIRED_SCOPES.join(' '));
     oauthParams.set('state', ':)')
@@ -132,7 +137,7 @@ function LoginView() {
                 <p>
                     <code>DirtyPoints™</code> connects Twitch redemptions to OBS.
                 </p>
-                <p>To get started,  <Dropdown as={ButtonGroup}>
+                <div className="mb-3">To get started,  <Dropdown as={ButtonGroup}>
                         <Button variant="primary"
                                 className="App-link"
                                 href={"https://id.twitch.tv/oauth2/authorize?" + oauthParams.toString()}
@@ -148,7 +153,7 @@ function LoginView() {
                             }>Still not working?</Dropdown.Item>
                         </Dropdown.Menu>
                     </Dropdown>
-                </p>
+                </div>
                 <footer><a href="https://github.com/kfitzgerald/dirty-points#add-to-obs" target="_blank" rel="noreferrer">Setup an OBS Dock</a> • <a href="https://github.com/kfitzgerald/dirty-points" target="_blank" rel="noreferrer">Open Source</a> app made by <a href="https://www.twitch.tv/dirtybriefs" target="_blank" rel="noreferrer">Dirtybriefs</a>.</footer>
             </div>
             <WorkaroundLoginModal show={showWorkaroundLoginModal} onClose={() => dispatch(setShowWorkaroundLoginModal(false))} onLogin={handleWorkaroundLogin} />

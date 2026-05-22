@@ -11,9 +11,11 @@ import {initialState as initialOBSState} from './obs/OBSReducer';
 
 let composer = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
+const profile = new URLSearchParams(window.location.search).get('profile') || 'dp';
+
 let enhancers = composer(
     persistState(['session'], {
-        key: 'dp_session',
+        key: `${profile}_session`,
         slicer: (/*paths*/) => {
             return (state) => {
                 return {

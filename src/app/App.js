@@ -10,8 +10,6 @@ function App() {
     const token = useSelector(state => state.session.token);
     const data = useSelector(state => state.session.data);
 
-    console.log({ lastError, token, data })
-
     // If the token is saved and validated, show the redeem list
     if (!lastError && token && token.access_token && data && data.user_id) {
         // app is fully ready
